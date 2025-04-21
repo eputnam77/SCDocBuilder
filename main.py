@@ -47,21 +47,29 @@ class PlaceholderReplacer:
             
             # Define fields to look for and their corresponding placeholders
             field_mappings = {
-                "Applicant name:": "{Applicant name}",
-                "Airplane manufacturer:": "{Airplane manufacturer}",
-                "Airplane model:": "{Airplane model}",
+                "Applicant name:": "{ApplicantName}",
+                "Airplane manufacturer:": "{AirplaneManufacturer}",
+                "Airplane model:": "{AirplaneModel}",
+                "Derivative model (if applicable):": "{Derivative}",
                 "Subject of special conditions:": "{Subject of special conditions}",
-                "Date of application:": "{Date of application}",
-                "Type of airplane:": "{Type of airplane}",
-                "TC number": "{TC number}",
-                "Name of SME:": "{Name of SME}",
-                "Section name:": "{Section name}",
-                "Routing symbol:": "{Routing symbol}",
-                "SME Regional Office address:": "{SME Regional Office address}",
-                "Telephone phone no:": "{Telephone phone no}",
-                "E-mail:": "{E-mail}",
+                "CPN project number:": "{CPN}",
+                "Date of application:": "{ApplicationDate}",
+                "Anticipated certification date:": "{CertDate}",
+                "Anticipated delivery date:": "{DeliveryDate}",
+                "Type of airplane: transport category, freighter, VIP, business jet, etc.": "{AirplaneType}",
+                "Number of engines (twin-engine, etc.):": "{NumberEngines}",
+                "Maximum passenger capacity of all listed aircraft:": "{PassengerCapacity}",
+                "Maximum takeoff weight of all listed aircraft:": "{TakeoffWeight}",
+                "TC number (does not apply to new TC project):": "{TCNumber}",
+                "Name of SME:": "{SMEName}",
+                "Section name:": "{SMESection}",
+                "Routing symbol:": "{SMERoutingSymbol}",
+                "SME Regional Office address:": "{SMEROAddress}",
+                "Telephone phone no:": "{SMEPhone}",
+                "E-mail:": "{SMEEmail}",
                 "Briefly (one to three sentences) provide a summary of the novel or unusual design features of the airplane.": "{Summary}",
-                "Provide a detailed discussion of the special conditions.": "{Description}"
+                "Provide a detailed discussion of the special conditions.": "{Description}",
+                "Provide the text of the special conditions.": "{SpecialConditions}",
             }
             
             extracted_content = {}
