@@ -1,0 +1,15 @@
+# Core dependencies
+python-docx>=1.1.2
+gradio>=4.16
+python-dateutil>=2.8.2
+rich>=13.0.0
+
+# Development dependencies
+pytest>=7.0.0
+pytest-cov>=4.1.0
+black>=23.0.0
+isort>=5.12.0
+mypy>=1.5.0
+
+# Type stubs
+types-python-dateutil>=2.8.19.14

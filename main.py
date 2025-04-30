@@ -1,17 +1,9 @@
 # Standard library imports
 import os
-import re
 import logging
-from typing import Dict, Any, Optional
-from datetime import datetime
 
 # Third-party imports
-from docx import Document
-from docx.text.paragraph import Paragraph
-from docx.text.run import Run
-from docx.oxml.text.paragraph import CT_P
-from docx.table import Table, _Cell
-import xml.etree.ElementTree as ET
+from src.faa_sc_filler.processor import DocumentProcessor
 
 # Set up logging
 logging.basicConfig(
@@ -20,193 +12,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class PlaceholderReplacer:
-    """
-    A class to handle replacement of placeholders in Word documents with content
-    from Special Condition worksheets.
-    """
-    
-    def __init__(self):
-        """Initialize the PlaceholderReplacer with common placeholder mappings."""
-        # Dictionary to store placeholder mappings
-        self.placeholder_mappings = {}
-        
-    def extract_worksheet_data(self, worksheet_path: str) -> Dict[str, str]:
-        """
-        Extract data from the Special Conditions Worksheet document.
-        
-        Args:
-            worksheet_path (str): Path to the Special Conditions Worksheet document
-            
-        Returns:
-            Dict[str, str]: Dictionary of field names and their values
-        """
-        try:
-            # Load the worksheet document
-            worksheet_doc = Document(worksheet_path)
-            
-            # Define fields to look for and their corresponding placeholders
-            field_mappings = {
-                "Applicant name:": "{ApplicantName}",
-                "Airplane manufacturer:": "{AirplaneManufacturer}",
-                "Airplane model:": "{AirplaneModel}",
-                "Derivative model (if applicable):": "{Derivative}",
-                "Subject of special conditions:": "{Subject of special conditions}",
-                "CPN project number:": "{CPN}",
-                "Date of application:": "{ApplicationDate}",
-                "Anticipated certification date:": "{CertDate}",
-                "Anticipated delivery date:": "{DeliveryDate}",
-                "Type of airplane: transport category, freighter, VIP, business jet, etc.": "{AirplaneType}",
-                "Number of engines (twin-engine, etc.):": "{NumberEngines}",
-                "Maximum passenger capacity of all listed aircraft:": "{PassengerCapacity}",
-                "Maximum takeoff weight of all listed aircraft:": "{TakeoffWeight}",
-                "TC number (does not apply to new TC project):": "{TCNumber}",
-                "Name of SME:": "{SMEName}",
-                "Section name:": "{SMESection}",
-                "Routing symbol:": "{SMERoutingSymbol}",
-                "SME Regional Office address:": "{SMEROAddress}",
-                "Telephone phone no:": "{SMEPhone}",
-                "E-mail:": "{SMEEmail}",
-                "Briefly (one to three sentences) provide a summary of the novel or unusual design features of the airplane.": "{Summary}",
-                "Provide a detailed discussion of the special conditions.": "{Description}",
-                "Provide the text of the special conditions.": "{SpecialConditions}",
-            }
-            
-            extracted_content = {}
-            
-            # Function to clean extracted text
-            def clean_text(text: str) -> str:
-                """Remove extra whitespace and special characters."""
-                return ' '.join(text.strip().split())
-            
-            # Process paragraphs and tables to find field values
-            for paragraph in worksheet_doc.paragraphs:
-                text = paragraph.text.strip()
-                for field, placeholder in field_mappings.items():
-                    if text.startswith(field):
-                        # Extract the value after the field label
-                        value = text[len(field):].strip()
-                        if value:
-                            extracted_content[placeholder] = clean_text(value)
-                            logger.info(f"Found {placeholder}: {value}")
-            
-            # Process tables (some values might be in tables)
-            for table in worksheet_doc.tables:
-                for row in table.rows:
-                    if len(row.cells) >= 2:  # Ensure we have at least 2 cells
-                        cell_text = clean_text(row.cells[0].text)
-                        for field, placeholder in field_mappings.items():
-                            if cell_text.startswith(field):
-                                value = clean_text(row.cells[1].text)
-                                if value:
-                                    extracted_content[placeholder] = value
-                                    logger.info(f"Found {placeholder} in table: {value}")
-            
-            # Log any missing fields
-            for field, placeholder in field_mappings.items():
-                if placeholder not in extracted_content:
-                    logger.warning(f"Field '{field}' not found in worksheet")
-                    extracted_content[placeholder] = ''
-            
-            return extracted_content
-            
-        except Exception as e:
-            logger.error(f"Error extracting worksheet data: {str(e)}")
-            raise
-
-    def process_paragraph(self, paragraph: Paragraph, replacements: Dict[str, str]) -> None:
-        """
-        Process a single paragraph for placeholder replacements.
-        
-        Args:
-            paragraph (Paragraph): The paragraph to process
-            replacements (Dict[str, str]): Dictionary of placeholder replacements
-        """
-        if not paragraph.text:
-            return
-
-        # Get the paragraph XML
-        paragraph_xml = paragraph._element.xml
-        
-        # Make replacements in the XML
-        for placeholder, replacement in replacements.items():
-            if placeholder in paragraph_xml:
-                # Preserve formatting by replacing within runs
-                for run in paragraph.runs:
-                    if placeholder in run.text:
-                        run.text = run.text.replace(placeholder, replacement)
-
-    def process_table(self, table: Table, replacements: Dict[str, str]) -> None:
-        """
-        Process a table for placeholder replacements.
-        
-        Args:
-            table (Table): The table to process
-            replacements (Dict[str, str]): Dictionary of placeholder replacements
-        """
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    self.process_paragraph(paragraph, replacements)
-
-    def process_document(self, template_path: str, worksheet_path: str, output_path: Optional[str] = None) -> None:
-        """
-        Process the entire Word document and replace placeholders.
-        
-        Args:
-            template_path (str): Path to the Word document template
-            worksheet_path (str): Path to the Special Conditions Worksheet
-            output_path (Optional[str]): Path to save the processed document
-        """
-        try:
-            # Validate input files exist
-            if not os.path.exists(template_path):
-                raise FileNotFoundError(f"Template file not found: {template_path}")
-            if not os.path.exists(worksheet_path):
-                raise FileNotFoundError(f"Worksheet file not found: {worksheet_path}")
-                
-            # Load the template document
-            doc = Document(template_path)
-            
-            # Extract content from worksheet
-            replacements = self.extract_worksheet_data(worksheet_path)
-            
-            # Process all paragraphs
-            for paragraph in doc.paragraphs:
-                self.process_paragraph(paragraph, replacements)
-            
-            # Process all tables
-            for table in doc.tables:
-                self.process_table(table, replacements)
-            
-            # Generate output path if not provided
-            if output_path is None:
-                file_name = os.path.basename(template_path)
-                base_name, ext = os.path.splitext(file_name)
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_path = f"{base_name}_processed_{timestamp}{ext}"
-            
-            # Save the processed document
-            doc.save(output_path)
-            logger.info(f"Document processed and saved to: {output_path}")
-            
-        except Exception as e:
-            logger.error(f"Error processing document: {str(e)}")
-            raise
-
 def main():
-    """Main function to demonstrate usage of the PlaceholderReplacer class."""
+    """Main function to orchestrate document processing."""
     try:
-        # Initialize the replacer
-        replacer = PlaceholderReplacer()
+        # Initialize the processor
+        processor = DocumentProcessor()
         
-        # Set paths to your actual files
-        template_path = r'C:\Users\Hoctar\Downloads\SC - Notice of Proposed SC TEMPLATE - Placeholders.docx'  # The document with placeholders
-        worksheet_path = r'C:\Users\Hoctar\Downloads\SC worksheet_Airbus_AT11885IB-T_49degreeobliqueseats_sml101724.docx'  # The Special Conditions Worksheet
-        output_path = r'C:\Users\Hoctar\Downloads\SC worksheet_Airbus_AT11885IB-T_49degreeobliqueseats_sml101724-processed.docx'  # Where to save the result (optional)
+        # Set paths using project structure
+        project_dir = os.path.dirname(os.path.abspath(__file__))
+        template_path = os.path.join(project_dir, 'templates', 'SC_Notice_Template.docx')
+        worksheet_path = os.path.join(project_dir, 'input', 'SC_worksheet.docx')
+        output_path = os.path.join(project_dir, 'output', 'processed_SC.docx')
         
         # Process the document
-        replacer.process_document(
+        processor.process_document(
             template_path=template_path,
             worksheet_path=worksheet_path,
             output_path=output_path
