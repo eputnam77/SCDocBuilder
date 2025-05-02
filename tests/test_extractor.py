@@ -155,6 +155,21 @@ def test_cfr_part_extraction():
     assert "{CFRPart}" in data
     assert data["{CFRPart}"] == "25"
 
+def test_cfr_part_extraction_variations():
+    variations = [
+        "14 CFR Part 25",
+        "Part 25",
+        "part 25",
+        "14CFR Part25",
+    ]
+    
+    extractor = WorksheetExtractor()
+    for text in variations:
+        doc = Document()
+        doc.add_paragraph(text)
+        data = extractor.extract_data(doc)
+        assert data["{CFRPart}"] == "25", f"Failed to extract from: {text}"
+
 def test_modifier_name_extraction():
     doc = Document()
     doc.add_paragraph("Name of Modifier: Test Modifier Inc.")

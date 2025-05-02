@@ -11,6 +11,7 @@ class WorksheetExtractor:
         self.field_mappings = FIELD_MAPPINGS
         self.multiline_fields = MULTILINE_FIELDS
         self.checkbox_mappings = CHECKBOX_MAPPINGS
+        self.cfr_pattern = re.compile(r'(?:14\s*CFR\s*)?[Pp]art\s*(\d+)')
     
     def clean_text(self, text: str) -> str:
         """Remove extra whitespace, field labels, and normalize format."""
@@ -84,15 +85,25 @@ class WorksheetExtractor:
             i += 1
         return None
     
+    def _extract_cfr_part(self, text: str) -> str:
+        """Extract CFR part number from text."""
+        match = self.cfr_pattern.search(text)
+        return match.group(1) if match else ""
+
     def extract_data(self, doc: Document) -> Dict[str, str]:
         """Extract all field values from the worksheet."""
         extracted_content = {placeholder: "" for _, placeholder in self.field_mappings.items()}
+        extracted_content["{CFRPart}"] = ""
         
         paragraphs = list(doc.paragraphs)
         i = 0
         while i < len(paragraphs):
             current_text = paragraphs[i].text.strip()
             logger.debug(f"Processing text: {current_text}")
+            
+            # Extract CFR Part
+            if "CFR" in current_text or "Part" in current_text:
+                extracted_content["{CFRPart}"] = self._extract_cfr_part(current_text)
             
             # Handle Q6 conditional block
             if "6. Check the appropriate box and complete:" in current_text:
