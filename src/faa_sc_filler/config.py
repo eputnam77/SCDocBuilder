@@ -2,20 +2,32 @@ from typing import Dict, List
 
 # Field mappings for worksheet extraction
 FIELD_MAPPINGS: Dict[str, str] = {
+    "14 CFR Part": "{CFRPart}",
+    "Docket No.": "{DocketNo}",
+    "Notice No.": "{NoticeNo}",
+    "Name of Modifier:": "{Modifier}",
+    "4[Name of Modifier]": "{Modifier}",
     "Applicant name:": "{ApplicantName}",
     "Airplane manufacturer:": "{AirplaneManufacturer}",
+    "Airplane manufacturer": "{AirplaneManufacturer}",
     "Airplane model:": "{AirplaneModel}",
+    "Airplane model": "{AirplaneModel}",
     "Derivative model (if applicable):": "{Derivative}",
     "Subject of special conditions:": "{SubjectOfSC}",
+    "Subject of special conditions": "{SubjectOfSC}",
     "CPN project number:": "{CPN}",
     "Date of application:": "{ApplicationDate}",
     "Anticipated certification date:": "{CertDate}",
+    "Anticipated certification date": "{CertDate}",  # Without colon
+    "certification date": "{CertDate}",  # Alternative format
     "Anticipated delivery date:": "{DeliveryDate}",
     "Type of airplane: transport category, freighter, VIP, business jet, etc.": "{AirplaneType}",
     "Number of engines (twin-engine, etc.):": "{NumberEngines}",
     "Maximum passenger capacity of all listed aircraft:": "{PassengerCapacity}",
     "Maximum takeoff weight of all listed aircraft:": "{TakeoffWeight}",
     "TC number (does not apply to new TC project):": "{TCNumber}",
+    "TC number": "{TCNumber}",  # Without colon
+    "TC number (does not apply to new TC project)": "{TCNumber}",  # Without colon
     "Name of SME:": "{SMEName}",
     "Section name:": "{SMESection}",
     "Routing symbol:": "{SMERoutingSymbol}",
@@ -25,7 +37,7 @@ FIELD_MAPPINGS: Dict[str, str] = {
     "Briefly (one to three sentences) provide a summary of the novel or unusual design features of the airplane.": "{Summary}",
     "Provide a detailed discussion of the special conditions.": "{Description}",
     "Provide the text of the special conditions.": "{SpecialConditions}",
-    "6. Check the appropriate box and complete:": "{ProjectType}",
+    "6. Check the appropriate box and complete:": "{ProjectType}"
 }
 
 CHECKBOX_MAPPINGS = {
@@ -38,7 +50,8 @@ CHECKBOX_MAPPINGS = {
 MULTILINE_FIELDS: List[str] = [
     "Provide a detailed discussion of the special conditions.",
     "Briefly (one to three sentences) provide a summary of the novel or unusual design features of the airplane.",
-    "Provide the text of the special conditions."
+    "Provide the text of the special conditions.",
+    "14 CFR Part",  # In case CFR part needs multiline handling
 ]
 
 # Default configuration

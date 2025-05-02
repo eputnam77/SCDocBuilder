@@ -144,3 +144,23 @@ def test_certification_date_field():
     
     assert "{CertDate}" in data
     assert data["{CertDate}"] == "2025-06-30"
+
+def test_cfr_part_extraction():
+    doc = Document()
+    doc.add_paragraph("14 CFR Part 25")
+    
+    extractor = WorksheetExtractor()
+    data = extractor.extract_data(doc)
+    
+    assert "{CFRPart}" in data
+    assert data["{CFRPart}"] == "25"
+
+def test_modifier_name_extraction():
+    doc = Document()
+    doc.add_paragraph("Name of Modifier: Test Modifier Inc.")
+    
+    extractor = WorksheetExtractor()
+    data = extractor.extract_data(doc)
+    
+    assert "{Modifier}" in data
+    assert data["{Modifier}"] == "Test Modifier Inc."

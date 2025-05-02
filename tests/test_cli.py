@@ -1,8 +1,14 @@
 # pytest tests/test_cli.py -v
 
 import pytest
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+assert os.path.exists(os.path.join(os.path.dirname(__file__), '../src/faa_sc_filler/prompt.py')), "prompt.py not found in faa_sc_filler"
 from faa_sc_filler.cli import parse_args
 from faa_sc_filler.config import DEFAULT_CONFIG
+from faa_sc_filler.validator import DocumentValidator
+from faa_sc_filler.prompt import prompt_for_missing_fields
 
 def test_cli_required_args():
     with pytest.raises(SystemExit):
@@ -95,3 +101,37 @@ def test_version():
     with pytest.raises(SystemExit) as exc_info:
         parse_args(["--version"])
     assert exc_info.value.code == 0  # Version info exits cleanly
+
+def test_cfr_part_validation():
+    """Test CFR part validation."""
+    assert DocumentValidator.validate_cfr_part("25") is True
+    assert DocumentValidator.validate_cfr_part("25,27") is True
+    assert DocumentValidator.validate_cfr_part("25, 27") is True
+    assert DocumentValidator.validate_cfr_part("24") is False
+    assert DocumentValidator.validate_cfr_part("25,24") is False
+
+def test_docket_notice_validation():
+    """Test docket and notice number validation."""
+    validator = DocumentValidator()
+    assert validator.validate_docket_no("FAA-2024-0001") is True
+    assert validator.validate_docket_no("FAA-24-1") is False
+    
+    assert validator.validate_notice_no("24-01-01-SC") is True
+    assert validator.validate_notice_no("24-1-1-SC") is False
+
+@pytest.mark.parametrize("inputs,expected", [
+    (["25", "FAA-2024-0001", "24-01-01-SC"], True),
+    (["invalid", "FAA-2024-0001", "24-01-01-SC"], False),
+])
+def test_prompt_for_missing_fields(monkeypatch, inputs, expected):
+    """Test prompting for missing fields."""
+    responses = iter(inputs)
+    monkeypatch.setattr('builtins.input', lambda _: next(responses))
+    
+    data = {}
+    if expected:
+        result = prompt_for_missing_fields(data)
+        assert all(k in result for k in ["{CFRPart}", "{DocketNo}", "{NoticeNo}"])
+    else:
+        with pytest.raises(ValueError):  # Expect ValueError for invalid input
+            prompt_for_missing_fields(data)

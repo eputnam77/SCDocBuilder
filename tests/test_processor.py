@@ -95,3 +95,23 @@ def test_table_cell_replacements():
     processor.process_document(doc, replacements)
     assert "John Doe" in table.cell(0, 0).text
     assert "555-0123" in table.cell(0, 1).text
+
+def test_process_template_header():
+    """Test processing of template header fields."""
+    doc = Document()
+    doc.add_paragraph("14 CFR Part {CFRPart}")
+    doc.add_paragraph("[Docket No. {DocketNo}; Notice No. {NoticeNo}]")
+    
+    processor = DocumentProcessor()
+    replacements = {
+        "{CFRPart}": "25",
+        "{DocketNo}": "FAA-2024-0001",
+        "{NoticeNo}": "24-01-01-SC"
+    }
+    
+    processor.process_document(doc, replacements)
+    
+    paragraphs = list(doc.paragraphs)
+    assert "14 CFR Part 25" in paragraphs[0].text
+    assert "FAA-2024-0001" in paragraphs[1].text
+    assert "24-01-01-SC" in paragraphs[1].text

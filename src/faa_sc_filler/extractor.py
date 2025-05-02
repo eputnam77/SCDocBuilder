@@ -51,6 +51,12 @@ class WorksheetExtractor:
             _, value = cleaned_text.split(field_name, 1)
             # Clean up any remaining colons
             return value.lstrip(':').strip()
+        
+        # Special handling for dates in text
+        if "scheduled for" in cleaned_text and any(d in field_name.lower() for d in ["date", "certification"]):
+            match = re.search(r'scheduled for\s+(.+?)\.?\s*$', cleaned_text)
+            if match:
+                return match.group(1).strip()
             
         return None
 
