@@ -29,4 +29,4 @@ class DocumentValidator:
         """Return list of missing required fields."""
         if required is None:
             required = ["Applicant", "Model", "Summary", "Description", "SpecialConditions"]
-        return [field for field in required if not content.get(field)]
+        return [field for field in required if not content.get(field) or not content.get(field).strip()]

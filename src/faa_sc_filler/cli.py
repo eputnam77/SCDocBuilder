@@ -7,8 +7,13 @@ from typing import Tuple, Optional, Dict, List
 from .processor import DocumentProcessor
 from .validator import DocumentValidator
 from .config import DEFAULT_CONFIG
+from docx import Document
 
 logger = logging.getLogger(__name__)
+
+# Exit codes
+EXIT_SUCCESS = 0
+EXIT_REPLACEMENT_ERROR = 1
 
 def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     """Parse command line arguments."""
@@ -27,11 +32,29 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     
     return parser.parse_args(args)
 
-def main() -> int:
+def main(cli_args: Optional[List[str]] = None) -> int:
     """Main CLI entry point."""
-    args = parse_args()
-    # ... implementation ...
-    return 0
+    try:
+        args = parse_args(cli_args)
+        processor = DocumentProcessor()
+        
+        # Load worksheet and extract data
+        worksheet_doc = Document(args.worksheet)
+        worksheet_data = processor.extractor.extract_data(worksheet_doc)
+        
+        # Process the document
+        processor.process_document(
+            template=Document(args.template),
+            replacements=worksheet_data,
+            output_path=args.output,
+            dry_run=args.dry_run
+        )
+        
+        return EXIT_SUCCESS
+        
+    except Exception as e:
+        logger.error(f"Error processing document: {e}")
+        return EXIT_REPLACEMENT_ERROR
 
 if __name__ == "__main__":
     sys.exit(main())

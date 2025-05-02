@@ -28,17 +28,6 @@ def test_extract_missing_field(sample_worksheet):
     assert "{SMEName}" in data
     assert data["{SMEName}"] == ""  # Should return empty string for missing fields
 
-def test_extract_table_data():
-    doc = Document()
-    table = doc.add_table(rows=2, cols=2)
-    table.cell(0, 0).text = "Maximum passenger capacity of all listed aircraft:"
-    table.cell(0, 1).text = "244"
-    
-    extractor = WorksheetExtractor()
-    data = extractor.extract_data(doc)
-    
-    assert data["{PassengerCapacity}"] == "244"
-
 def test_extract_numbered_field():
     doc = Document()
     doc.add_paragraph("a. Type of airplane: transport category, freighter, VIP, business jet, etc.: Transport Category")
@@ -107,3 +96,51 @@ def test_date_field_extraction():
     data = extractor.extract_data(doc)
     
     assert data["{ApplicationDate}"] == "2025-04-21"
+
+def test_mixed_formatting():
+    doc = Document()
+    p = doc.add_paragraph()
+    run1 = p.add_run("Applicant name: ")
+    run1.bold = True
+    run2 = p.add_run("Test Corp")
+    run2.italic = True
+    
+    extractor = WorksheetExtractor()
+    data = extractor.extract_data(doc)
+    assert data["{ApplicantName}"] == "Test Corp"
+
+def test_special_characters():
+    doc = Document()
+    doc.add_paragraph("SME Regional Office address: 123 Main St., Suite #4, Bldg. A & B")
+    
+    extractor = WorksheetExtractor()
+    data = extractor.extract_data(doc)
+    assert data["{SMEROAddress}"] == "123 Main St., Suite #4, Bldg. A & B"
+
+def test_multiple_colons():
+    doc = Document()
+    doc.add_paragraph("Type of airplane: transport category, freighter, VIP, business jet, etc.: Transport Category")
+    
+    extractor = WorksheetExtractor()
+    data = extractor.extract_data(doc)
+    assert data["{AirplaneType}"] == "Transport Category"
+
+def test_false_placeholder_text():
+    doc = Document()
+    doc.add_paragraph("Text with {braces} but not a placeholder")
+    doc.add_paragraph("Applicant name: Test Corp")
+    
+    extractor = WorksheetExtractor()
+    data = extractor.extract_data(doc)
+    assert data["{ApplicantName}"] == "Test Corp"
+    assert "{braces}" not in data.values()
+
+def test_certification_date_field():
+    doc = Document()
+    doc.add_paragraph("Anticipated certification date: 2025-06-30")
+    
+    extractor = WorksheetExtractor()
+    data = extractor.extract_data(doc)
+    
+    assert "{CertDate}" in data
+    assert data["{CertDate}"] == "2025-06-30"

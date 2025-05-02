@@ -52,8 +52,7 @@ def test_dry_run_processing():
     processor = DocumentProcessor()
     replacements = {"{Name}": "World"}
     
-    diff = processor.process_document(doc, replacements, dry_run=True)
-    
+    _, diff = processor.process_document(doc, replacements, dry_run=True)
     assert diff["{Name}"] == {"old": "{Name}", "new": "World"}
     assert "Hello {Name}" in doc.paragraphs[0].text  # Original unchanged
 

@@ -1,7 +1,20 @@
+# poetry run pytest
+
 """Test configuration and fixtures."""
 
 import pytest
 from docx import Document
+
+try:
+    import pytest_asyncio
+    pytest_plugins = ["pytest_asyncio"]
+except ImportError:
+    pass  # asyncio support is optional
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "asyncio: mark test as async/await test"
+    )
 
 @pytest.fixture
 def sample_worksheet():

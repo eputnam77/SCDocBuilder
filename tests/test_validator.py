@@ -63,17 +63,18 @@ def test_empty_field_values():
     assert missing.issuperset(expected)
 
 def test_valid_docx(tmp_path):
+    """Test validation of a minimal valid DOCX file."""
+    from zipfile import ZipFile, ZIP_DEFLATED
+    
     # Create minimal valid DOCX structure
     docx_file = tmp_path / "valid.docx"
-    with open(docx_file, "wb") as f:
-        # Write ZIP local file header signature
-        f.write(b"PK\x03\x04")
-        # Write minimal [Content_Types].xml entry
-        f.write(b"PK\x03\x04\x14\x00\x00\x00\x08\x00")
-        f.write(b"[Content_Types].xml")
+    
+    with ZipFile(docx_file, 'w', ZIP_DEFLATED) as zf:
+        # Add required Content_Types.xml
+        content_types = '''<?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        </Types>'''
+        zf.writestr('[Content_Types].xml', content_types)
     
     validator = DocumentValidator()
-    try:
-        validator.validate_docx(str(docx_file))
-    except ValueError as e:
-        pytest.fail(f"Should accept minimal DOCX structure: {e}")
+    assert validator.validate_docx(str(docx_file)) is True
