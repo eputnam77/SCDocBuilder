@@ -153,3 +153,14 @@ The Airbus Model A321 neo ACF and A321 neo XLR airplane's single occupant obliqu
     assert "Section 25.785(d)" in result_text
     assert "Airbus Model A321 neo ACF and A321 neo XLR" in result_text
     assert "PS-AIR-25-27" in result_text
+
+def test_missing_replacement():
+    """Test behavior when no replacement is provided for a placeholder."""
+    doc = Document()
+    doc.add_paragraph("Contact: {SMEName}")
+    
+    replacer = PlaceholderReplacer()
+    replacements = {}  # Empty replacements
+    
+    replacer.process_paragraph(doc.paragraphs[0], replacements)
+    assert "{SMEName}" in doc.paragraphs[0].text  # Placeholder should remain
