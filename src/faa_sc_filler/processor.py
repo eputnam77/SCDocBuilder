@@ -99,9 +99,14 @@ class DocumentProcessor:
         logger.debug("Processing table for replacements")
         for row_idx, row in enumerate(table.rows):
             for cell_idx, cell in enumerate(row.cells):
-                logger.debug(f"Processing cell [{row_idx}][{cell_idx}]: {cell.text[:50]}...")
-                for paragraph in cell.paragraphs:
-                    self.replacer.process_paragraph(paragraph, self.replacements)
+                logger.debug(f"Processing cell [{row_idx}][{cell_idx}]")
+                logger.debug(f"Cell text before processing: {cell.text}")
+                modified_text = cell.text
+                for key, value in self.replacements.items():
+                    if key in modified_text:
+                        modified_text = modified_text.replace(key, value)
+                cell.text = modified_text
+                logger.debug(f"Cell text after processing: {cell.text}")
 
     def process_summary_paragraph(self, paragraph: Paragraph) -> None:
         logger.debug(f"Processing summary paragraph: {paragraph.text[:50]}...")
@@ -109,34 +114,37 @@ class DocumentProcessor:
             logger.debug("Not a summary paragraph, skipping")
             return
             
-        # Store original text and process it
-        full_text = paragraph.text
-        summary_text = full_text[8:].strip()  # Remove "SUMMARY:"
-        logger.debug(f"Extracted summary text: {summary_text}")
+        # Store original content and clear paragraph
+        original_text = paragraph.text
+        logger.debug(f"Original text: {original_text}")
+        paragraph.clear()
         
-        # Process placeholders before converting case
-        processed_text = summary_text
-        for key, value in self.replacements.items():
-            if key in processed_text:
-                logger.debug(f"Replacing {key} with {value} in summary")
-                processed_text = processed_text.replace(key, value)
-        
-        logger.debug(f"Final processed summary: {processed_text}")
-        # Convert to sentence case but preserve placeholders
-        processed_text = processed_text.lower()
-        processed_text = processed_text[0].upper() + processed_text[1:]
-        
-        # Clear and rebuild paragraph with proper formatting
-        for run in paragraph.runs:
-            run.text = ""
-            
-        # Add "SUMMARY:" in bold
+        # Add "SUMMARY: " in bold
         summary_header = paragraph.add_run("SUMMARY: ")
         summary_header.bold = True
+        logger.debug(f"Added summary header with bold={summary_header.bold}")
         
-        # Add processed text without bold
-        content = paragraph.add_run(processed_text)
+        # Process the remaining content
+        content_text = original_text[8:].strip()  # Remove "SUMMARY:"
+        logger.debug(f"Content text before processing: {content_text}")
+        
+        # Process replacements
+        for key, value in self.replacements.items():
+            if key in content_text:
+                content_text = content_text.replace(key, value)
+                logger.debug(f"Replaced {key} with {value}")
+        
+        # Force content to use sentence case
+        words = content_text.split()
+        if words:
+            words[0] = words[0].capitalize()  # First word capitalized
+            content_text = ' '.join(words)
+        logger.debug(f"Processed content text: {content_text}")
+        
+        # Add content without bold
+        content = paragraph.add_run(content_text)
         content.bold = False
+        logger.debug(f"Final run content: '{content.text}', bold={content.bold}")
 
     def process_document(self, template: Union[str, DocumentType], 
                         replacements: Dict[str, str], 

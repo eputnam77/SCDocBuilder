@@ -115,3 +115,72 @@ def test_process_template_header():
     assert "14 CFR Part 25" in paragraphs[0].text
     assert "FAA-2024-0001" in paragraphs[1].text
     assert "24-01-01-SC" in paragraphs[1].text
+
+def test_summary_paragraph_processing():
+    doc = Document()
+    test_para = doc.add_paragraph("SUMMARY: Testing {SystemName} in {Location}")
+    
+    processor = DocumentProcessor()
+    replacements = {
+        "{SystemName}": "autopilot",  # lowercase input
+        "{Location}": "aircraft"      # lowercase input
+    }
+    
+    processor.process_document(doc, replacements)
+    
+    paragraph = doc.paragraphs[0]
+    print("\nDebug Summary Paragraph:")
+    print(f"Original paragraph text: {test_para.text}")
+    print(f"Processed text: {paragraph.text}")
+    print(f"Number of runs: {len(paragraph.runs)}")
+    for i, run in enumerate(paragraph.runs):
+        print(f"Run {i}: text='{run.text}', bold={run.bold}")
+    
+    # Verify exact content of each run
+    assert len(paragraph.runs) == 2, "Should have exactly 2 runs"
+    assert paragraph.runs[0].text == "SUMMARY: ", "First run should be 'SUMMARY: '"
+    assert paragraph.runs[0].bold is True, "SUMMARY: should be bold"
+    assert paragraph.runs[1].text == "Testing autopilot in aircraft", "Content should be in sentence case"
+    assert paragraph.runs[1].bold is False, "Content should not be bold"
+
+def test_invalid_replacements_type():
+    doc = Document()
+    doc.add_paragraph("Test {Field}")
+    
+    processor = DocumentProcessor()
+    with pytest.raises(TypeError):
+        processor.process_document(doc, "invalid")
+
+def test_table_complex_cell_processing():
+    doc = Document()
+    table = doc.add_table(rows=1, cols=1)
+    cell = table.cell(0, 0)
+    # Fix: Combine into single paragraph with newline
+    cell.text = "Name: {SMEName}\nPhone: {SMEPhone}"
+    
+    processor = DocumentProcessor()
+    replacements = {
+        "{SMEName}": "John Doe",
+        "{SMEPhone}": "555-0123"
+    }
+    
+    processor.process_document(doc, replacements)
+    
+    print(f"Cell text: {cell.text}")  # Debug output
+    # Fix: Check complete cell text
+    assert "Name: John Doe" in cell.text
+    assert "Phone: 555-0123" in cell.text
+
+def test_regex_pattern_handling():
+    doc = Document()
+    doc.add_paragraph("Testing {Complex.Field} and {Simple}")
+    
+    processor = DocumentProcessor()
+    replacements = {
+        "{Complex.Field}": "Complex Value",
+        "{Simple}": "Simple Value"
+    }
+    
+    processor.process_document(doc, replacements)
+    
+    assert "Testing Complex Value and Simple Value" in doc.paragraphs[0].text
