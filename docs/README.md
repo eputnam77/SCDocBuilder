@@ -49,10 +49,19 @@ faa-sc-filler \
 
 Start the Gradio web interface:
 ```bash
+# For Codespaces/remote environments, use share=True
+python -m faa_sc_filler.webui --share
+
+# For local environments
 python -m faa_sc_filler.webui
+
+# For debugging
+python -m faa_sc_filler.webui --log-level DEBUG
 ```
 
-Then open your browser to http://localhost:7860 and:
+Note: If you experience compatibility issues, use Python 3.11 or earlier. Python 3.12 is not fully supported by all dependencies yet.
+
+Then open your browser to the provided URL and:
 1. Upload template DOCX file
 2. Upload worksheet DOCX file
 3. Click "Generate" to process

@@ -3,23 +3,74 @@ import gradio as gr
 from typing import Tuple, Optional, Dict
 import re
 from pathlib import Path
+import tempfile
+import shutil
 from docx import Document
 from .processor import DocumentProcessor
 
+# Configure logging to show debug messages
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def generate(template: gr.File, worksheet: gr.File, dry_run: bool = False) -> Tuple[Optional[str], Optional[dict]]:
+def create_temp_dir():
+    """Create temporary directory for file uploads"""
+    temp_dir = Path("temp_uploads")
+    temp_dir.mkdir(exist_ok=True)
+    return temp_dir
+
+def save_uploaded_file(file_data, filename: str) -> Path:
+    """Save uploaded file data to temporary file"""
+    temp_dir = create_temp_dir()
+    temp_file = temp_dir / filename
+    
+    if isinstance(file_data, (str, Path)):
+        # File is already a path
+        return Path(file_data)
+        
+    if hasattr(file_data, 'name'):
+        # File is a file-like object
+        return Path(file_data.name)
+        
+    # File is binary data
+    with open(temp_file, 'wb') as f:
+        if isinstance(file_data, bytes):
+            f.write(file_data)
+        else:
+            shutil.copyfileobj(file_data, f)
+    return temp_file
+
+def validate_file(file: str) -> Tuple[bool, str]:
+    """Validate uploaded file path."""
+    if not file:
+        return False, "No file uploaded"
+    path = Path(file)
+    if not path.exists():
+        return False, f"File not found: {file}"
+    if not path.suffix.lower() == '.docx':
+        return False, f"Invalid file type: {path.suffix}"
+    return True, ""
+
+def generate(template: str, worksheet: str, dry_run: bool = False) -> Tuple[Optional[str], Optional[dict]]:
     """Process document through web interface."""
     try:
         logger.info("Starting document generation")
         logger.debug(f"Template file: {template}")
         logger.debug(f"Worksheet file: {worksheet}")
+
+        # Validate files
+        template_valid, template_error = validate_file(template)
+        worksheet_valid, worksheet_error = validate_file(worksheet)
+
+        if not template_valid:
+            return None, {"error": f"Template file error: {template_error}"}
+        if not worksheet_valid:
+            return None, {"error": f"Worksheet file error: {worksheet_error}"}
         
         processor = DocumentProcessor()
         
-        # Load documents from Gradio file objects
-        template_doc = Document(template.name)
-        worksheet_doc = Document(worksheet.name)
+        # Load documents from file paths
+        template_doc = Document(template)
+        worksheet_doc = Document(worksheet)
         
         # Extract data first
         worksheet_data = processor.extractor.extract_data(worksheet_doc)
@@ -63,8 +114,8 @@ def enhanced_generate(template_file, worksheet_file, cfr_part=None, docket_no=No
     """Enhanced document generation with optional fields."""
     try:
         # Load documents first
-        template_doc = Document(template_file.name)
-        worksheet_doc = Document(worksheet_file.name)
+        template_doc = Document(template_file)
+        worksheet_doc = Document(worksheet_file)
         
         # Process document with optional fields
         processor = DocumentProcessor()
@@ -81,14 +132,113 @@ def enhanced_generate(template_file, worksheet_file, cfr_part=None, docket_no=No
         logger.exception("Error in enhanced document generation")
         return None, {"error": str(e)}
 
+def handle_generation(*args):
+    template, worksheet, cfr, docket, notice, dry_run = args
+    try:
+        if not template or not worksheet:
+            return None, {"error": "Both template and worksheet files are required"}, "Both files are required"
+
+        # Save and process files
+        temp_dir = Path("temp_uploads")
+        temp_dir.mkdir(exist_ok=True)
+        temp_template = temp_dir / "temp_template.docx"
+        temp_worksheet = temp_dir / "temp_worksheet.docx"
+        
+        with open(temp_template, "wb") as f:
+            f.write(template)
+        with open(temp_worksheet, "wb") as f:
+            f.write(worksheet)
+
+        try:
+            template_doc = Document(temp_template)
+            worksheet_doc = Document(temp_worksheet)
+            
+            processor = DocumentProcessor()
+            worksheet_data = processor.extractor.extract_data(worksheet_doc)
+            
+            if cfr: worksheet_data["{CFRPart}"] = cfr
+            if docket: worksheet_data["{DocketNo}"] = docket
+            if notice: worksheet_data["{NoticeNo}"] = notice
+            
+            # Process document with absolute path
+            output_dir = Path.cwd() / "output"
+            output_dir.mkdir(exist_ok=True)
+            output_path = output_dir / "processed_SC.docx"
+            
+            path, diff = processor.process_document(
+                template=template_doc,
+                replacements=worksheet_data,
+                output_path=str(output_path) if not dry_run else None,
+                dry_run=True  # Always generate diff for preview
+            )
+            
+            logger.info(f"Generated file path: {path}")
+            logger.info(f"Generated diff: {diff}")
+            
+            if dry_run:
+                return None, diff, "Showing preview (dry-run)"
+            else:
+                # Process again without dry_run to generate file
+                path, _ = processor.process_document(
+                    template=template_doc,
+                    replacements=worksheet_data,
+                    output_path=str(output_path),
+                    dry_run=False
+                )
+                return str(output_path), diff, "Document generated successfully!"
+
+        finally:
+            temp_template.unlink(missing_ok=True)
+            temp_worksheet.unlink(missing_ok=True)
+
+    except Exception as e:
+        logger.exception("Error in document generation")
+        return None, {"error": str(e)}, f"Error: {str(e)}"
+
 def create_ui() -> gr.Blocks:
     """Create the Gradio web interface."""
-    # Create output directory if it doesn't exist
-    Path("output").mkdir(exist_ok=True)
+    output_dir = Path.cwd() / "output"
+    output_dir.mkdir(exist_ok=True)
     
     with gr.Blocks(title="FAA Special Conditions Template Filler") as demo:
-        template_file = gr.File(label="SC Template (.docx)", file_types=['.docx'])
-        worksheet_file = gr.File(label="Worksheet (.docx)", file_types=['.docx'])
+        gr.Markdown("### File Upload Debug Info")
+        debug_output = gr.Markdown()
+        
+        template_file = gr.File(
+            label="SC Template (.docx)",
+            file_types=['.docx'],
+            type="binary"
+        )
+        worksheet_file = gr.File(
+            label="Worksheet (.docx)",
+            file_types=['.docx'],
+            type="binary"
+        )
+
+        def update_debug_info(template, worksheet):
+            """Show readable debug info for uploaded files"""
+            debug_info = []
+            if template:
+                debug_info.append(f"Template: {type(template).__name__}")
+                if hasattr(template, 'name'):
+                    debug_info.append(f"Template path: {template.name}")
+            if worksheet:
+                debug_info.append(f"Worksheet: {type(worksheet).__name__}")
+                if hasattr(worksheet, 'name'):
+                    debug_info.append(f"Worksheet path: {worksheet.name}")
+            return "\n".join(debug_info) if debug_info else "No files uploaded yet"
+
+        # Add file change handlers
+        template_file.change(
+            fn=update_debug_info,
+            inputs=[template_file, worksheet_file],
+            outputs=[debug_output]
+        )
+        worksheet_file.change(
+            fn=update_debug_info,
+            inputs=[template_file, worksheet_file],
+            outputs=[debug_output]
+        )
         
         gr.Markdown("### Optional Fields")
         with gr.Row():
@@ -98,63 +248,30 @@ def create_ui() -> gr.Blocks:
             
         dry_run = gr.Checkbox(label="Dry-run (preview JSON diff)")
         
-        with gr.Column():
-            output_view = gr.File(label="Generated Document", interactive=True)
-            download_button = gr.Button("Download Result", visible=False)
-            diff_view = gr.JSON(label="Changes Preview")
-            error_view = gr.Markdown()
-
-        def handle_generation(*args):
-            template, worksheet, cfr, docket, notice, dry_run = args
-            try:
-                # Load documents first
-                template_doc = Document(template.name)
-                worksheet_doc = Document(worksheet.name)
-                
-                # Process with optional fields
-                processor = DocumentProcessor()
-                worksheet_data = processor.extractor.extract_data(worksheet_doc)
-                
-                # Add optional fields if provided
-                if cfr: worksheet_data["{CFRPart}"] = cfr
-                if docket: worksheet_data["{DocketNo}"] = docket
-                if notice: worksheet_data["{NoticeNo}"] = notice
-                
-                # Process document
-                output_path = "output/processed_SC.docx" if not dry_run else None
-                path, diff = processor.process_document(
-                    template=template_doc,
-                    replacements=worksheet_data,
-                    output_path=output_path,
-                    dry_run=dry_run
+        with gr.Row():
+            with gr.Column(scale=1):
+                output_status = gr.Markdown("No document generated yet")
+                output_view = gr.File(
+                    label="Generated Document",
+                    type="file",
+                    file_count="single",
+                    interactive=False,
+                    visible=True
                 )
-                
-                if path:
-                    return path, diff, True
-                return None, diff, False
-                
-            except Exception as e:
-                logger.exception("Error in document generation")
-                return None, {"error": str(e)}, False
+            with gr.Column(scale=1):
+                diff_view = gr.JSON(
+                    label="Changes Preview",
+                    container=True,
+                    show_label=True
+                )
+        
+        error_view = gr.Markdown()
 
-        def trigger_download(file_path):
-            """Handle file download."""
-            if file_path:
-                return file_path
-            return None
-
-        gr.Button("Generate").click(
+        generate_btn = gr.Button("Generate", variant="primary")
+        generate_btn.click(
             fn=handle_generation,
             inputs=[template_file, worksheet_file, cfr_part, docket_no, notice_no, dry_run],
-            outputs=[output_view, diff_view, download_button]
-        )
-
-        # Update download button handler
-        download_button.click(
-            fn=trigger_download,
-            inputs=[output_view],
-            outputs=[gr.File()],
-            api_name="download"
+            outputs=[output_view, diff_view, output_status]
         )
 
         gr.Markdown("""
@@ -168,7 +285,8 @@ def create_ui() -> gr.Blocks:
 
 def main():
     demo = create_ui()
-    demo.launch()
+    demo.queue()  # Enable queueing
+    demo.launch(share=True)
 
 if __name__ == "__main__":
     main()
