@@ -49,57 +49,65 @@ class PlaceholderReplacer:
     def process_paragraph(self, paragraph: Paragraph, replacements: Dict[str, str]) -> None:
         """Process a paragraph for placeholder replacements."""
         logger.debug(f"Processing paragraph: '{paragraph.text[:50]}...'")
-        logger.debug(f"Available replacements: {replacements}")
-
-        if not paragraph.text:
-            logger.debug("Empty paragraph, skipping")
+        
+        # 0. Skip empty paragraphs or those without placeholder markers
+        if not paragraph.text or '{' not in paragraph.text or '}' not in paragraph.text:
+            logger.debug("No placeholder markers found, skipping")
             return
 
-        text = paragraph.text
+        # 1. Find actual placeholders
+        placeholders = self.find_placeholders_in_paragraph(paragraph)
+        if not placeholders:
+            logger.debug("No valid placeholders found, skipping")
+            return
+            
+        logger.debug(f"Found placeholders to process: {placeholders}")
+
+        # 2. Join runs and replace
+        full_text = ''.join(run.text for run in paragraph.runs)
         modified = False
-        logger.debug(f"Number of runs in paragraph: {len(paragraph.runs)}")
         
-        # Process each run
-        for i, run in enumerate(paragraph.runs):
-            original_text = run.text
-            run_text = original_text
-            logger.debug(f"Processing run {i}: '{original_text[:50]}...'")
-            
-            for key, value in replacements.items():
-                if key in run_text:
-                    logger.debug(f"Found placeholder '{key}' in run")
-                    run_text = run_text.replace(key, value)
-                    logger.debug(f"Replaced with '{value}'")
-                    modified = True
-                    
-            if modified:
-                logger.debug(f"Updating run text from '{original_text[:50]}...' to '{run_text[:50]}...'")
-                run.text = run_text
+        for key, value in replacements.items():
+            if key in full_text and value.strip():
+                logger.debug(f"Replacing '{key}' with '{value}'")
+                full_text = full_text.replace(key, value)
+                modified = True
         
-        # If no runs or no replacement in runs, handle whole paragraph
-        if not modified and paragraph.runs:
-            logger.debug("No modifications in individual runs, processing entire paragraph")
-            modified_text = text
-            for key, value in replacements.items():
-                if key in modified_text:
-                    logger.debug(f"Replacing {key} with {value} in whole paragraph")
-                    modified_text = modified_text.replace(key, value)
-            
-            logger.debug(f"Setting modified text to first run: '{modified_text[:50]}...'")
-            paragraph.runs[0].text = modified_text
-            if len(paragraph.runs) > 1:
-                logger.debug(f"Clearing {len(paragraph.runs)-1} remaining runs")
-                for run in paragraph.runs[1:]:
-                    run.text = ""
+        if modified:
+            logger.debug(f"Writing modified text: '{full_text[:50]}...'")
+            paragraph.runs[0].text = full_text
+            for run in paragraph.runs[1:]:
+                run.text = ""
 
     def process_document(self, template_path: str, replacements: Dict[str, str], output_path: str) -> None:
         """Process the entire document for replacements."""
         logger.debug(f"Processing document: {template_path}")
         logger.debug(f"Output path: {output_path}")
         logger.debug(f"Replacements to apply: {replacements}")
+        logger.debug("Final replacements dict: %r", replacements)
+        
+        # Verify template file exists and is readable
+        from pathlib import Path
+        template_file = Path(template_path)
+        if not template_file.exists():
+            raise FileNotFoundError(f"Template file not found: {template_path}")
+        logger.debug(f"Template file exists: {template_file.absolute()}")
+        logger.debug(f"Template file size: {template_file.stat().st_size} bytes")
         
         try:
             doc = Document(template_path)
+            
+            # Dump first few paragraphs to verify content
+            for i, p in enumerate(doc.paragraphs[:5]):
+                logger.debug("Paragraph %d raw text: %r", i, p.text)
+                # Also dump runs to see if placeholders are split
+                if len(p.runs) > 1:
+                    for j, run in enumerate(p.runs):
+                        logger.debug("  Run %d.%d text: %r", i, j, run.text)
+            
+            # Quick check of content
+            sample_text = doc.paragraphs[0].text if doc.paragraphs else "NO TEXT"
+            logger.debug(f"First paragraph preview: '{sample_text[:100]}...'")
             logger.debug("Document loaded successfully")
             
             # Process all paragraphs

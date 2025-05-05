@@ -76,23 +76,32 @@ class WorksheetExtractor:
         content_lines = []
         i = start_idx + 1  # Start from next line
 
-        # Find the next field header
+        # Special handling for TC number - only take first non-empty line
+        if "TC number" in paragraphs[start_idx].text:
+            while i < len(paragraphs):
+                text = paragraphs[i].text.strip()
+                if text:  # First non-empty line is our TC number
+                    logger.debug(f"Found TC number: '{text}'")
+                    return text, i
+                i += 1
+            return "", i - 1
+
+        # Regular multiline field handling
         while i < len(paragraphs):
             text = paragraphs[i].text.strip()
-            # Stop if we find a numbered header or known field
-            if (re.match(r'^\d+\..*', text) or  # Numbered header like "17."
-                any(field in text for field in self.field_mappings if len(field) > 20)):  # Known field headers
+            # Stop if we find a numbered header, known field, or blank line
+            if (re.match(r'^\d+\..*', text) or  
+                any(field in text for field in self.field_mappings if len(field) > 20) or
+                not text):  # Stop at blank line
                 break
             
-            # Add non-empty lines to content
-            if text:
-                logger.debug(f"Adding line {i}: '{text}'")
-                content_lines.append(text)
+            logger.debug(f"Adding line {i}: '{text}'")
+            content_lines.append(text)
             i += 1
 
         result = '\n'.join(content_lines)
         logger.debug(f"Extracted multiline value: '{result}'")
-        return result, i - 1  # Return content and last processed index
+        return result, i - 1
 
     def extract_conditional_block(self, paragraphs: List[any], start_idx: int) -> Optional[str]:
         """Extract selected option from conditional block."""
@@ -203,6 +212,10 @@ class WorksheetExtractor:
                 cell_text = self.clean_text(row.cells[0].text)
                 cell_value = self.clean_text(row.cells[1].text)
                 logger.debug(f"Processing table cell - Label: '{cell_text}', Value: '{cell_value}'")
+                
+                # Special handling for TC number - only take first line if multiline
+                if "TC number" in cell_text:
+                    cell_value = cell_value.split('\n')[0].strip()
                 
                 # Try exact match first
                 for field, placeholder in self.field_mappings.items():
