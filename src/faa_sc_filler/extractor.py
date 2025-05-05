@@ -1,6 +1,6 @@
 import re
 import logging
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from docx import Document
 from .config import FIELD_MAPPINGS, MULTILINE_FIELDS, CHECKBOX_MAPPINGS
 
@@ -75,14 +75,21 @@ class WorksheetExtractor:
         logger.debug(f"Extracting multiline value starting at index {start_idx}")
         content_lines = []
         i = start_idx + 1  # Start from next line
-        
-        while (i < len(paragraphs) and 
-               paragraphs[i].text.strip() and 
-               not any(field in paragraphs[i].text for field in self.field_mappings)):
-            logger.debug(f"Adding line {i}: '{paragraphs[i].text.strip()}'")
-            content_lines.append(paragraphs[i].text.strip())
-            i += 1
+
+        # Find the next field header
+        while i < len(paragraphs):
+            text = paragraphs[i].text.strip()
+            # Stop if we find a numbered header or known field
+            if (re.match(r'^\d+\..*', text) or  # Numbered header like "17."
+                any(field in text for field in self.field_mappings if len(field) > 20)):  # Known field headers
+                break
             
+            # Add non-empty lines to content
+            if text:
+                logger.debug(f"Adding line {i}: '{text}'")
+                content_lines.append(text)
+            i += 1
+
         result = '\n'.join(content_lines)
         logger.debug(f"Extracted multiline value: '{result}'")
         return result, i - 1  # Return content and last processed index
@@ -211,3 +218,33 @@ class WorksheetExtractor:
                             extracted_content[placeholder] = cell_value
                             logger.info(f"Found partial match {placeholder} in table: {cell_value}")
                             break
+
+        # Handle TC number specifically
+        for row in table.rows:
+            for cell in row.cells:
+                text = cell.text.strip()
+                
+                tc_match = re.match(r'.*TC number.*:\s*(.*)', text, re.IGNORECASE)
+                if tc_match:
+                    tc_value = tc_match.group(1).strip()
+                    # If TC number is on same line
+                    if tc_value:
+                        extracted_content["{TCNumber}"] = tc_value
+                    else:
+                        # Look for TC number on next line
+                        next_cell = self._get_next_cell(cell)
+                        if next_cell:
+                            next_text = next_cell.text.strip()
+                            if next_text and not any(key in next_text for key in FIELD_MAPPINGS):
+                                extracted_content["{TCNumber}"] = next_text
+
+    def _get_next_cell(self, cell) -> Any:
+        """Get next cell in document flow."""
+        try:
+            parent_row = cell._element.getparent()
+            next_row = parent_row.getnext()
+            if next_row is not None:
+                return next_row.cells[0]
+        except:
+            pass
+        return None

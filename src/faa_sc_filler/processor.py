@@ -1,5 +1,6 @@
 import logging
-from typing import Dict, Optional, Union, Tuple
+import re
+from typing import Dict, Optional, Union, Tuple, Any
 from docx import Document
 from docx.document import Document as DocumentType
 from docx.section import Section
@@ -171,7 +172,6 @@ class DocumentProcessor:
         self.process_sections(doc)
         
         # Set up regex pattern
-        import re
         placeholder_pattern = re.compile(r'\{[^}]+\}')
         
         def process_paragraph_text(text: str) -> str:
@@ -215,3 +215,68 @@ class DocumentProcessor:
             return output_path, None
             
         return None, None
+
+    def process_document(self, template: Document, replacements: Dict[str, str], output_path: Optional[str] = None, dry_run: bool = False) -> Tuple[Optional[str], Dict[str, Any]]:
+        logger.debug(f"Starting document processing with dry_run={dry_run}")
+        logger.debug(f"Template type: {type(template)}")
+        logger.debug(f"Replacements: {replacements}")
+        logger.debug(f"Output path: {output_path}")
+        
+        diff = {}
+        doc = template
+        
+        # Create set of found tokens for tracking missing ones
+        found_tokens = set()
+        
+        for paragraph in doc.paragraphs:
+            self._process_paragraph(paragraph, replacements, diff, found_tokens)
+            
+        # Check for missing required tokens
+        required_tokens = {
+            "{CFRPart}", "{DocketNo}", "{NoticeNo}", "{ApplicantName}", 
+            "{AirplaneManufacturer}", "{AirplaneModel}", "{SubjectOfSC}",
+            "{ApplicationDate}", "{CertDate}", "{TCNumber}"
+        }
+        
+        # Mark missing tokens in diff
+        for token in required_tokens:
+            if token not in found_tokens:
+                if token not in replacements or not replacements[token].strip():
+                    diff[token] = {
+                        "old": token,
+                        "new": f"NEED: {token[1:-1]}"  # Remove braces for cleaner display
+                    }
+                    replacements[token] = f"NEED: {token[1:-1]}"
+
+        if not dry_run and output_path:
+            doc.save(output_path)
+            logger.debug(f"Document saved to {output_path}")
+            return output_path, diff
+        return None, diff
+
+    def _process_paragraph(self, paragraph, replacements: Dict[str, str], diff: Dict[str, Any], found_tokens: set):
+        """Process a paragraph for replacements and track found tokens."""
+        content = paragraph.text
+        logger.debug(f"Processing paragraph: {content[:50]}...")
+        
+        # Find all tokens in the paragraph
+        tokens = re.findall(r'\{[^}]+\}', content)
+        found_tokens.update(tokens)
+        
+        for token in tokens:
+            old_value = token
+            new_value = replacements.get(token, f"NEED: {token[1:-1]}")  # Remove braces for cleaner display
+            
+            if token in replacements:
+                if not replacements[token].strip():  # Check if value is empty or whitespace
+                    new_value = f"NEED: {token[1:-1]}"
+                    
+            # Record the change
+            diff[token] = {
+                "old": old_value,
+                "new": new_value
+            }
+            
+            # Replace in paragraph
+            for run in paragraph.runs:
+                run.text = run.text.replace(token, new_value)

@@ -121,3 +121,31 @@ def test_enhanced_generate(sample_files):
     assert result is not None
     output, diff = result
     assert isinstance(output, (str, type(None)))
+
+import pytest
+from pathlib import Path
+from faa_sc_filler.webui import handle_generation
+
+def test_handle_generation_preserves_download():
+    """Test that document generation preserves download functionality"""
+    # Setup test files
+    template = b"Test template content"
+    worksheet = b"Test worksheet content"
+    
+    try:
+        # Test with dry_run=False to verify file generation
+        result = handle_generation(template, worksheet, None, None, None, False)
+        assert len(result) == 3
+        path, diff, show_download = result
+        
+        # Verify download button state
+        assert show_download is True
+        
+        # Verify file exists
+        assert path is not None
+        assert Path(path).exists()
+        
+    finally:
+        # Cleanup
+        if 'path' in locals() and path:
+            Path(path).unlink(missing_ok=True)

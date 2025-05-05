@@ -136,7 +136,7 @@ def handle_generation(*args):
     template, worksheet, cfr, docket, notice, dry_run = args
     try:
         if not template or not worksheet:
-            return None, {"error": "Both template and worksheet files are required"}, "Both files are required"
+            return None, {"error": "Both template and worksheet files are required"}, "Error: Both files are required"
 
         # Save and process files
         temp_dir = Path("temp_uploads")
@@ -164,28 +164,27 @@ def handle_generation(*args):
             output_dir = Path.cwd() / "output"
             output_dir.mkdir(exist_ok=True)
             output_path = output_dir / "processed_SC.docx"
-            
-            path, diff = processor.process_document(
-                template=template_doc,
-                replacements=worksheet_data,
-                output_path=str(output_path) if not dry_run else None,
-                dry_run=True  # Always generate diff for preview
-            )
-            
-            logger.info(f"Generated file path: {path}")
-            logger.info(f"Generated diff: {diff}")
-            
+
             if dry_run:
-                return None, diff, "Showing preview (dry-run)"
+                # Just get the diff for preview
+                _, diff = processor.process_document(
+                    template=template_doc,
+                    replacements=worksheet_data,
+                    output_path=None,
+                    dry_run=True
+                )
+                return None, diff, "Preview mode - no file generated"
             else:
-                # Process again without dry_run to generate file
-                path, _ = processor.process_document(
+                # Generate actual file with replacements
+                path, diff = processor.process_document(
                     template=template_doc,
                     replacements=worksheet_data,
                     output_path=str(output_path),
                     dry_run=False
                 )
-                return str(output_path), diff, "Document generated successfully!"
+                if path and Path(path).exists():
+                    return str(path), diff, "Document generated successfully!"
+                return None, {"error": "Failed to generate document"}, "Error: Failed to generate document"
 
         finally:
             temp_template.unlink(missing_ok=True)
@@ -247,23 +246,38 @@ def create_ui() -> gr.Blocks:
             notice_no = gr.Textbox(label="Notice No.", placeholder="24-01-01-SC")
             
         dry_run = gr.Checkbox(label="Dry-run (preview JSON diff)")
-        
+
+        # Add checkbox for diff view with label
         with gr.Row():
-            with gr.Column(scale=1):
-                output_status = gr.Markdown("No document generated yet")
-                output_view = gr.File(
-                    label="Generated Document",
-                    type="file",
-                    file_count="single",
-                    interactive=False,
-                    visible=True
-                )
-            with gr.Column(scale=1):
-                diff_view = gr.JSON(
-                    label="Changes Preview",
-                    container=True,
-                    show_label=True
-                )
+            gr.Markdown("### Output")
+            show_diff = gr.Checkbox(label="Show Changes Preview", value=False)
+        
+        # Put output view in its own row
+        with gr.Row():
+            output_status = gr.Markdown("No document generated yet")
+            output_view = gr.File(
+                label="Generated Document",
+                type="file",
+                file_count="single",
+                interactive=False,
+                visible=True
+            )
+
+        # Put diff view in a separate row that can be toggled
+        with gr.Row(visible=False) as diff_row:
+            diff_view = gr.JSON(
+                label="Changes Preview - Fields marked 'NEED:' require values",
+                show_label=True,
+                height=500,  # Increased height for better visibility
+                container=True,
+            )
+
+        # Add visibility toggle for diff view
+        show_diff.change(
+            fn=lambda x: gr.Row(visible=x),
+            inputs=[show_diff],
+            outputs=[diff_row]
+        )
         
         error_view = gr.Markdown()
 

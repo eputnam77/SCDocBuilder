@@ -5,29 +5,42 @@ FIELD_MAPPINGS: Dict[str, str] = {
     "14 CFR Part": "{CFRPart}",
     "Docket No.": "{DocketNo}",
     "Notice No.": "{NoticeNo}",
+    "Final Notice No.": "{FinalNoticeNo}",
     "Name of Modifier:": "{Modifier}",
     "4[Name of Modifier]": "{Modifier}",
     "Applicant name:": "{ApplicantName}",
+    "Applicant name": "{ApplicantName}", # Without colon
     "Airplane manufacturer:": "{AirplaneManufacturer}",
-    "Airplane manufacturer": "{AirplaneManufacturer}",
+    "Airplane manufacturer": "{AirplaneManufacturer}", # Without colon
     "Airplane model:": "{AirplaneModel}",
-    "Airplane model": "{AirplaneModel}",
+    "Airplane model": "{AirplaneModel}", # Without colon
     "Derivative model (if applicable):": "{Derivative}",
     "Subject of special conditions:": "{SubjectOfSC}",
-    "Subject of special conditions": "{SubjectOfSC}",
+    "Subject of special conditions": "{SubjectOfSC}", # Without colon
     "CPN project number:": "{CPN}",
+    "CPN project number": "{CPN}", # Without colon
     "Date of application:": "{ApplicationDate}",
+    "Date of application": "{ApplicationDate}",
     "Anticipated certification date:": "{CertDate}",
-    "Anticipated certification date": "{CertDate}",  # Without colon
+    "Anticipated certification date": "{CertDate}", # Without colon
     "certification date": "{CertDate}",  # Alternative format
     "Anticipated delivery date:": "{DeliveryDate}",
+    "Type of airplane: transport category, freighter, VIP, business jet, etc.:": "{AirplaneType}",
     "Type of airplane: transport category, freighter, VIP, business jet, etc.": "{AirplaneType}",
+    "a. Type of airplane: transport category, freighter, VIP, business jet, etc.:": "{AirplaneType}",
     "Number of engines (twin-engine, etc.):": "{NumberEngines}",
+    "Number of engines (twin-engine, etc.)": "{NumberEngines}", # Without colon
+    "b. Number of engines (twin-engine, etc.):": "{NumberEngines}",
     "Maximum passenger capacity of all listed aircraft:": "{PassengerCapacity}",
+    "Maximum passenger capacity of all listed aircraft": "{PassengerCapacity}", # Without colon
+    "c. Maximum passenger capacity of all listed aircraft:": "{PassengerCapacity}",
     "Maximum takeoff weight of all listed aircraft:": "{TakeoffWeight}",
+    "Maximum takeoff weight of all listed aircraft": "{TakeoffWeight}", # Without colon
+    "d. Maximum takeoff weight of all listed aircraft:": "{TakeoffWeight}",
     "TC number (does not apply to new TC project):": "{TCNumber}",
-    "TC number": "{TCNumber}",  # Without colon
-    "TC number (does not apply to new TC project)": "{TCNumber}",  # Without colon
+    "TC number (does not apply to new TC project)": "{TCNumber}", # Without colon
+    "TC number": "{TCNumber}", # Without colon
+    "e. TC number (does not apply to new TC project):": "{TCNumber}",
     "Name of SME:": "{SMEName}",
     "Section name:": "{SMESection}",
     "Routing symbol:": "{SMERoutingSymbol}",
@@ -52,6 +65,9 @@ MULTILINE_FIELDS: List[str] = [
     "Briefly (one to three sentences) provide a summary of the novel or unusual design features of the airplane.",
     "Provide the text of the special conditions.",
     "14 CFR Part",  # In case CFR part needs multiline handling
+    "TC number",  # Handle TC number as multiline to capture value on next line
+    "TC number (does not apply to new TC project)",  # Handle TC number variations
+    "e. TC number (does not apply to new TC project)",
 ]
 
 # Default configuration
