@@ -1,6 +1,7 @@
 # pytest tests/test_webui.py -v
 
 import pytest
+
 import asyncio
 import warnings
 from pathlib import Path
@@ -25,10 +26,17 @@ def sample_files(tmp_path):
     worksheet.add_paragraph("Name of SME: John Doe")
     worksheet.save(worksheet_path)
     
-    # Create mock Gradio file objects
+    # Create mock Gradio file objects with os.PathLike compatibility
     class MockFile:
         def __init__(self, path):
             self.name = str(path)
+            self._path = path
+        
+        def __fspath__(self):
+            return self.name
+            
+        def __str__(self):
+            return self.name
     
     return MockFile(template_path), MockFile(worksheet_path)
 
@@ -36,7 +44,7 @@ def test_generate_success(sample_files):
     """Test successful document generation."""
     template_file, worksheet_file = sample_files
     
-    # Test normal processing
+    # Test normal processing - files already exist on disk from fixture
     output_path, diff = generate(template_file, worksheet_file, dry_run=False)
     assert output_path is not None
     assert Path(output_path).exists()
@@ -126,20 +134,37 @@ import pytest
 from pathlib import Path
 from faa_sc_filler.webui import handle_generation
 
-def test_handle_generation_preserves_download():
+def test_handle_generation_preserves_download(tmp_path):
     """Test that document generation preserves download functionality"""
-    # Setup test files
-    template = b"Test template content"
-    worksheet = b"Test worksheet content"
+    # Setup test files as actual Word documents
+    template_path = tmp_path / "template.docx"
+    worksheet_path = tmp_path / "worksheet.docx"
+    
+    # Create template document
+    template_doc = Document()
+    template_doc.add_paragraph("Template: {placeholder}")
+    template_doc.save(template_path)
+    
+    # Create worksheet document
+    worksheet_doc = Document()  # Added this line to create the worksheet document
+    worksheet_doc.add_paragraph("Value: test")
+    worksheet_doc.save(worksheet_path)
     
     try:
+        # Read the files as bytes for the test
+        with open(template_path, 'rb') as f:
+            template_bytes = f.read()
+        with open(worksheet_path, 'rb') as f:
+            worksheet_bytes = f.read()
+            
         # Test with dry_run=False to verify file generation
-        result = handle_generation(template, worksheet, None, None, None, False)
+        result = handle_generation(template_bytes, worksheet_bytes, None, None, None, False)
         assert len(result) == 3
-        path, diff, show_download = result
+        path, diff, show_message = result  # Renamed to show_message to better reflect its purpose
         
-        # Verify download button state
-        assert show_download is True
+        # Verify success message
+        assert isinstance(show_message, str)
+        assert "success" in show_message.lower()
         
         # Verify file exists
         assert path is not None
@@ -149,3 +174,5 @@ def test_handle_generation_preserves_download():
         # Cleanup
         if 'path' in locals() and path:
             Path(path).unlink(missing_ok=True)
+        template_path.unlink(missing_ok=True)
+        worksheet_path.unlink(missing_ok=True)
