@@ -3,13 +3,35 @@
 import pytest
 import sys
 import os
+from pathlib import Path
+from docx import Document
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 assert os.path.exists(os.path.join(os.path.dirname(__file__), '../src/faa_sc_filler/prompt.py')), "prompt.py not found in faa_sc_filler"
-from faa_sc_filler.cli import parse_args
+from faa_sc_filler.cli import parse_args, main
 from faa_sc_filler.config import DEFAULT_CONFIG
 from faa_sc_filler.validator import DocumentValidator
 from faa_sc_filler.prompt import prompt_for_missing_fields
 
+@pytest.fixture
+def sample_files(tmp_path):
+    """Create sample input files for testing."""
+    template_path = tmp_path / "template.docx"
+    worksheet_path = tmp_path / "worksheet.docx"
+    output_path = tmp_path / "output.docx"
+    
+    # Create test template
+    template = Document()
+    template.add_paragraph("Contact: {SMEName}")
+    template.save(template_path)
+    
+    # Create test worksheet
+    worksheet = Document()
+    worksheet.add_paragraph("Name of SME: John Doe")
+    worksheet.save(worksheet_path)
+    
+    return template_path, worksheet_path, output_path
+
+# CLI Arguments Tests
 def test_cli_required_args():
     with pytest.raises(SystemExit):
         parse_args([])  # No args
@@ -102,6 +124,7 @@ def test_version():
         parse_args(["--version"])
     assert exc_info.value.code == 0  # Version info exits cleanly
 
+# Document Validation Tests
 def test_cfr_part_validation():
     """Test CFR part validation."""
     assert DocumentValidator.validate_cfr_part("25") is True
@@ -119,6 +142,7 @@ def test_docket_notice_validation():
     assert validator.validate_notice_no("24-01-01-SC") is True
     assert validator.validate_notice_no("24-1-1-SC") is False
 
+# Field Prompt Tests
 @pytest.mark.parametrize("inputs,expected", [
     (["25", "FAA-2024-0001", "24-01-01-SC"], True),
     (["invalid", "FAA-2024-0001", "24-01-01-SC"], False),
@@ -135,3 +159,38 @@ def test_prompt_for_missing_fields(monkeypatch, inputs, expected):
     else:
         with pytest.raises(ValueError):  # Expect ValueError for invalid input
             prompt_for_missing_fields(data)
+
+# Integration Tests
+def test_cli_end_to_end(sample_files, monkeypatch, caplog):
+    """Test complete CLI workflow."""
+    template_path, worksheet_path, output_path = sample_files
+    
+    # Mock user inputs
+    inputs = iter([
+        "25",                   # CFR Part
+        "FAA-2024-0001",       # Docket No
+        "24-01-01-SC",         # Notice No
+    ])
+    monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+    
+    # Run CLI with args
+    main_result = main([
+        "--template", str(template_path),
+        "--worksheet", str(worksheet_path),
+        "--output", str(output_path),
+        "--log-level", "DEBUG"  # Add debug logging
+    ])
+    
+    # Print logs for debugging
+    print("\nLog output:")
+    for record in caplog.records:
+        print(f"{record.levelname}: {record.message}")
+    
+    # Verify results
+    assert main_result == 0, f"Main returned {main_result}. Check logs above for details."
+    assert output_path.exists(), f"Output file not created at {output_path}"
+    
+    # Check content was properly replaced
+    output_doc = Document(output_path)
+    assert "Contact: John Doe" in output_doc.paragraphs[0].text, "Expected text not found in output"
+    assert "[[NEED:" not in output_doc.paragraphs[0].text, "Unfilled token found in output"
