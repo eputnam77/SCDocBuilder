@@ -67,11 +67,16 @@ class PlaceholderReplacer:
         full_text = ''.join(run.text for run in paragraph.runs)
         modified = False
         
-        for key, value in replacements.items():
-            if key in full_text and value.strip():
-                logger.debug(f"Replacing '{key}' with '{value}'")
-                full_text = full_text.replace(key, value)
-                modified = True
+        # Process each placeholder found in the text
+        for placeholder in placeholders:
+            placeholder_clean = placeholder.strip('{}')
+            if placeholder_clean not in replacements or not replacements[placeholder_clean].strip():
+                logger.debug(f"Missing replacement for '{placeholder_clean}', using NEED")
+                full_text = full_text.replace(placeholder, f"NEED: {placeholder_clean}")
+            else:
+                logger.debug(f"Replacing '{placeholder}' with '{replacements[placeholder_clean]}'")
+                full_text = full_text.replace(placeholder, replacements[placeholder_clean])
+            modified = True
         
         if modified:
             logger.debug(f"Writing modified text: '{full_text[:50]}...'")
