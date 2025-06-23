@@ -1,10 +1,11 @@
 from typing import Dict
 from .validator import DocumentValidator
 
+
 def prompt_for_missing_fields(extracted_data: Dict[str, str]) -> Dict[str, str]:
     """Prompt user for missing required fields."""
     validator = DocumentValidator()
-    
+
     if not extracted_data.get("{CFRPart}"):
         value = input("Enter CFR Part(s) (comma-separated - 23,25,27,29,31,33,35): ")
         if not validator.validate_cfr_part(value):
