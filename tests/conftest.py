@@ -2,19 +2,19 @@
 
 """Test configuration and fixtures."""
 
+import importlib
 import pytest
 from docx import Document
 
-try:
-    import pytest_asyncio
+if importlib.util.find_spec("pytest_asyncio"):
+    import pytest_asyncio  # type: ignore
     pytest_plugins = ["pytest_asyncio"]
-except ImportError:
-    pass  # asyncio support is optional
+    assert pytest_asyncio
+
 
 def pytest_configure(config):
-    config.addinivalue_line(
-        "markers", "asyncio: mark test as async/await test"
-    )
+    config.addinivalue_line("markers", "asyncio: mark test as async/await test")
+
 
 @pytest.fixture
 def sample_worksheet():
@@ -25,6 +25,7 @@ def sample_worksheet():
     doc.add_paragraph("Airplane model: 787-TEST")
     doc.add_paragraph("14 CFR Part 25")
     return doc
+
 
 @pytest.fixture
 def multiline_worksheet():
