@@ -19,3 +19,14 @@ faa-sc-filler --template templates/SC_Notice_Template.docx \
 
 The processed document will be saved to the `output/` directory by default if no
 output path is provided.
+
+## Streamlit Interface
+
+For a simple web UI run:
+
+```bash
+python -m faa_sc_filler.streamlit_app
+```
+
+Upload the template and worksheet files, then click **Generate** to download the
+result.

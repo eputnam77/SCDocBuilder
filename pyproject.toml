@@ -12,6 +12,7 @@ python-docx = "^1.0.0"
 gradio = "^3.50.2"  # Downgrade to 3.x series
 rich = "^13.7.0"
 python-dateutil = "^2.8.2"
+streamlit = "^1.32.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

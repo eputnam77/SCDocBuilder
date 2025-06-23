@@ -1,41 +1,45 @@
 # pytest tests/test_validator.py -v
 
 import pytest
-import os
 from faa_sc_filler.validator import DocumentValidator
+
 
 def test_file_size_validation(tmp_path):
     # Create a large test file
     large_file = tmp_path / "large.docx"
-    large_file.write_bytes(b'0' * (11 * 1024 * 1024))  # 11MB
-    
+    large_file.write_bytes(b"0" * (11 * 1024 * 1024))  # 11MB
+
     validator = DocumentValidator()
     with pytest.raises(ValueError, match="File too large"):
         validator.validate_docx(str(large_file))
+
 
 def test_required_fields():
     validator = DocumentValidator()
     content = {
         "Applicant": "Test Corp",
-        "Model": "Test-100"
+        "Model": "Test-100",
         # Missing Summary
     }
     missing = validator.validate_required_fields(content)
     assert "Summary" in missing
 
+
 def test_invalid_file_format(tmp_path):
     # Create a text file with .docx extension
     fake_docx = tmp_path / "fake.docx"
     fake_docx.write_text("This is not a real DOCX file")
-    
+
     validator = DocumentValidator()
     with pytest.raises(ValueError, match="Not a valid DOCX file"):
         validator.validate_docx(str(fake_docx))
+
 
 def test_missing_file():
     validator = DocumentValidator()
     with pytest.raises(FileNotFoundError):
         validator.validate_docx("nonexistent.docx")
+
 
 def test_multiple_missing_fields():
     validator = DocumentValidator()
@@ -50,6 +54,7 @@ def test_multiple_missing_fields():
     assert "SpecialConditions" in missing
     assert len(missing) == 4  # Update expected count
 
+
 def test_empty_field_values():
     validator = DocumentValidator()
     content = {
@@ -62,19 +67,20 @@ def test_empty_field_values():
     expected = {"Applicant", "Model", "Summary", "Description"}
     assert missing.issuperset(expected)
 
+
 def test_valid_docx(tmp_path):
     """Test validation of a minimal valid DOCX file."""
     from zipfile import ZipFile, ZIP_DEFLATED
-    
+
     # Create minimal valid DOCX structure
     docx_file = tmp_path / "valid.docx"
-    
-    with ZipFile(docx_file, 'w', ZIP_DEFLATED) as zf:
+
+    with ZipFile(docx_file, "w", ZIP_DEFLATED) as zf:
         # Add required Content_Types.xml
-        content_types = '''<?xml version="1.0" encoding="UTF-8"?>
+        content_types = """<?xml version="1.0" encoding="UTF-8"?>
         <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-        </Types>'''
-        zf.writestr('[Content_Types].xml', content_types)
-    
+        </Types>"""
+        zf.writestr("[Content_Types].xml", content_types)
+
     validator = DocumentValidator()
     assert validator.validate_docx(str(docx_file)) is True

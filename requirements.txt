@@ -5,6 +5,7 @@ python-docx==1.1.2
 gradio==3.50.2  # Downgrade to more stable version
 python-dateutil==2.8.2
 rich==13.7.0
+streamlit==1.32.0
 
 # Development dependencies
 pytest>=8.0.0

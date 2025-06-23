@@ -67,6 +67,16 @@ Then open your browser to the provided URL and:
 3. Click "Generate" to process
 4. Download the result
 
+### Streamlit Interface
+
+Run an alternative interface powered by Streamlit:
+
+```bash
+python -m faa_sc_filler.streamlit_app
+```
+
+This launches a local web page where you can upload files and generate the processed document.
+
 ## Project Structure
 ```
 /workspaces/FAASpecialConditionTemplateFiller/
