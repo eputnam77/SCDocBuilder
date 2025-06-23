@@ -17,6 +17,8 @@ def process_files(
     cfr_part: Optional[str] = None,
     docket_no: Optional[str] = None,
     notice_no: Optional[str] = None,
+    editor_level: str = "minimal",
+    model: str = "OpenAI",
 ) -> Optional[str]:
     """Process uploaded files and return output path."""
     try:
@@ -32,6 +34,10 @@ def process_files(
         template_doc = Document(template_path)
         worksheet_doc = Document(worksheet_path)
         data = processor.extractor.extract_data(worksheet_doc)
+
+        from .ai_editor import apply_editorial_review
+
+        data = apply_editorial_review(data, level=editor_level, model=model)
 
         if cfr_part:
             data["{CFRPart}"] = cfr_part
@@ -75,6 +81,8 @@ def main() -> None:
                 cfr_part or None,
                 docket_no or None,
                 notice_no or None,
+                "minimal",
+                "OpenAI",
             )
             if output and Path(output).exists():
                 with open(output, "rb") as f:

@@ -15,6 +15,7 @@ pip install -r requirements.txt
 ```bash
 faa-sc-filler --template templates/SC_Notice_Template.docx \
     --worksheet input/SC_worksheet.docx
+    --editor-level basic  # optional AI editorial review
 ```
 
 The processed document will be saved to the `output/` directory by default if no
