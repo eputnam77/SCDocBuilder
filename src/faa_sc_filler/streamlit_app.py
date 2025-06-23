@@ -6,6 +6,7 @@ import streamlit as st
 from docx import Document
 
 from .processor import DocumentProcessor
+from .logging import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ def process_files(
 
 def main() -> None:
     """Run the Streamlit application."""
+    setup_logging()
     st.title("FAA Special Conditions Template Filler")
     template_file = st.file_uploader("Template DOCX", type="docx")
     worksheet_file = st.file_uploader("Worksheet DOCX", type="docx")
