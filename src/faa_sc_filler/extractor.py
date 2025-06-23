@@ -1,6 +1,7 @@
 import re
 import logging
 from typing import Dict, Optional, List, Any
+from docx.table import Table
 from docx import Document
 from .config import FIELD_MAPPINGS, MULTILINE_FIELDS, CHECKBOX_MAPPINGS, _normalize
 
@@ -74,7 +75,7 @@ class WorksheetExtractor:
         return None
 
     def extract_multiline_value(
-        self, paragraphs: List[any], start_idx: int
+        self, paragraphs: List[Any], start_idx: int
     ) -> tuple[str, int]:
         """Extract multiline value starting from given index."""
         logger.debug(f"Extracting multiline value starting at index {start_idx}")
@@ -113,7 +114,7 @@ class WorksheetExtractor:
         return result, i - 1
 
     def extract_conditional_block(
-        self, paragraphs: List[any], start_idx: int
+        self, paragraphs: List[Any], start_idx: int
     ) -> Optional[str]:
         """Extract selected option from conditional block."""
         logger.debug(f"Extracting conditional block starting at index {start_idx}")
@@ -219,7 +220,7 @@ class WorksheetExtractor:
 
         return extracted_content
 
-    def process_table(self, table, extracted_content):
+    def process_table(self, table: Table, extracted_content: Dict[str, str]) -> None:
         """Process table to extract field values."""
         logger.debug("Processing table for field values")
         for row in table.rows:
@@ -274,7 +275,7 @@ class WorksheetExtractor:
                             ):
                                 extracted_content["{TCNumber}"] = next_text
 
-    def _get_next_cell(self, cell) -> Any:
+    def _get_next_cell(self, cell: Any) -> Any:
         """Get next cell in document flow."""
         try:
             parent_row = cell._element.getparent()

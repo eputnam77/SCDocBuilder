@@ -1,6 +1,5 @@
 import argparse
 import logging
-import re
 import sys
 from typing import Dict, List, Optional
 
@@ -8,6 +7,7 @@ from docx import Document
 
 from .config import DEFAULT_CONFIG
 from .processor import DocumentProcessor
+from .validator import DocumentValidator
 
 logger = logging.getLogger(__name__)
 
@@ -48,31 +48,9 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     return parsed_args
 
 
-def validate_cfr_part(value: str) -> bool:
-    logger.debug(f"Validating CFR part: {value}")
-    valid_parts = {"23", "25", "27", "29", "31", "33", "35"}
-    parts = {p.strip() for p in value.split(",")}
-    result = all(p in valid_parts for p in parts)
-    logger.debug(f"CFR part validation result: {result}")
-    return result
-
-
-def validate_docket_no(value: str) -> bool:
-    logger.debug(f"Validating docket number: {value}")
-    result = bool(re.match(r"^FAA-\d{4}-\d{4}$", value))
-    logger.debug(f"Docket number validation result: {result}")
-    return result
-
-
-def validate_notice_no(value: str) -> bool:
-    logger.debug(f"Validating notice number: {value}")
-    result = bool(re.match(r"^\d{2}-\d{2}-\d{2}-SC$", value))
-    logger.debug(f"Notice number validation result: {result}")
-    return result
-
-
 def prompt_for_missing_fields(extracted_data: Dict[str, str]) -> Dict[str, str]:
     """Prompt user for missing required fields."""
+    validator = DocumentValidator()
     logger.debug("Checking for missing fields in extracted data")
     logger.debug(f"Current extracted data: {extracted_data}")
 
@@ -82,7 +60,7 @@ def prompt_for_missing_fields(extracted_data: Dict[str, str]) -> Dict[str, str]:
             value = input(
                 "Enter CFR Part(s) (comma-separated - 23,25,27,29,31,33,35): "
             )
-            if validate_cfr_part(value):
+            if validator.validate_cfr_part(value):
                 extracted_data["{CFRPart}"] = value
                 logger.debug(f"CFR Part set to: {value}")
                 break
@@ -93,7 +71,7 @@ def prompt_for_missing_fields(extracted_data: Dict[str, str]) -> Dict[str, str]:
         logger.debug("Docket number is missing, prompting user")
         while True:
             value = input("Enter Docket No. (format: FAA-YYYY-XXXX): ")
-            if validate_docket_no(value):
+            if validator.validate_docket_no(value):
                 extracted_data["{DocketNo}"] = value
                 logger.debug(f"Docket number set to: {value}")
                 break
@@ -104,7 +82,7 @@ def prompt_for_missing_fields(extracted_data: Dict[str, str]) -> Dict[str, str]:
         logger.debug("Notice number is missing, prompting user")
         while True:
             value = input("Enter Notice No. (format: XX-XX-XX-SC): ")
-            if validate_notice_no(value):
+            if validator.validate_notice_no(value):
                 extracted_data["{NoticeNo}"] = value
                 logger.debug(f"Notice number set to: {value}")
                 break
@@ -128,8 +106,6 @@ def main(cli_args: Optional[List[str]] = None) -> int:
 
         logger.debug("Initializing DocumentProcessor")
         processor = DocumentProcessor(need_token=args.need_token)
-
-        from .validator import DocumentValidator
 
         validator = DocumentValidator()
         logger.debug("Validating template and worksheet files")

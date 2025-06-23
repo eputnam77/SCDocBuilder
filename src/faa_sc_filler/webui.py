@@ -6,9 +6,8 @@ from pathlib import Path
 import shutil
 from docx import Document
 from .processor import DocumentProcessor
+from .logging import setup_logging
 
-# Configure logging to show debug messages
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -297,6 +296,8 @@ def create_ui() -> gr.Blocks:
 
 
 def main():
+    """Run the Gradio web UI."""
+    setup_logging()
     demo = create_ui()
     demo.queue()  # Enable queueing
     demo.launch(share=True)
