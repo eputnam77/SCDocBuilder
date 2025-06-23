@@ -2,6 +2,7 @@ import logging
 from typing import Dict, List, Optional, Union
 from docx.text.paragraph import Paragraph
 from docx import Document
+from .config import DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -9,8 +10,9 @@ logger = logging.getLogger(__name__)
 class PlaceholderReplacer:
     """Handles replacement of placeholders in Word documents."""
 
-    def __init__(self):
+    def __init__(self, need_token: str = DEFAULT_CONFIG["need_token"]):
         logger.debug("Initializing PlaceholderReplacer")
+        self.need_token = need_token
 
     def find_placeholders_in_paragraph(self, paragraph: Paragraph) -> List[str]:
         """Find all placeholders in a paragraph."""
@@ -78,9 +80,12 @@ class PlaceholderReplacer:
                 or not replacements[placeholder_clean].strip()
             ):
                 logger.debug(
-                    f"Missing replacement for '{placeholder_clean}', using NEED"
+                    f"Missing replacement for '{placeholder_clean}', using NEED token"
                 )
-                full_text = full_text.replace(placeholder, f"NEED: {placeholder_clean}")
+                full_text = full_text.replace(
+                    placeholder,
+                    f"{self.need_token}{placeholder_clean}]]",
+                )
             else:
                 logger.debug(
                     f"Replacing '{placeholder}' with '{replacements[placeholder_clean]}'"

@@ -121,12 +121,29 @@ def main(cli_args: Optional[List[str]] = None) -> int:
         logger.debug("Starting main CLI function")
         args = parse_args(cli_args)
 
-        # Set up logging level
-        logging.basicConfig(level=getattr(logging, args.log_level))
+        from .logging import setup_logging
+
+        setup_logging(args.log_level)
         logger.debug(f"Set logging level to {args.log_level}")
 
         logger.debug("Initializing DocumentProcessor")
-        processor = DocumentProcessor()
+        processor = DocumentProcessor(need_token=args.need_token)
+
+        from .validator import DocumentValidator
+
+        validator = DocumentValidator()
+        logger.debug("Validating template and worksheet files")
+        validator.validate_docx(args.template)
+        validator.validate_docx(args.worksheet)
+
+        from pathlib import Path
+
+        if not args.output:
+            output_dir = Path("output")
+            output_dir.mkdir(exist_ok=True)
+            output_name = f"{Path(args.template).stem}_processed.docx"
+            args.output = str(output_dir / output_name)
+            logger.debug(f"Generated output path: {args.output}")
 
         # Load worksheet and extract data
         logger.debug(f"Loading worksheet from: {args.worksheet}")
