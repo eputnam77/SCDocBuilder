@@ -39,6 +39,17 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         default="INFO",
         help="Logging level",
     )
+    parser.add_argument(
+        "--editor-level",
+        choices=["minimal", "basic", "full"],
+        default="minimal",
+        help="AI editorial review level",
+    )
+    parser.add_argument(
+        "--model",
+        default="OpenAI",
+        help="Model provider for editorial review",
+    )
 
     # Add version argument
     parser.add_argument("--version", action="version", version="%(prog)s 1.0.0")
@@ -127,6 +138,13 @@ def main(cli_args: Optional[List[str]] = None) -> int:
         logger.debug("Extracting data from worksheet")
         worksheet_data = processor.extractor.extract_data(worksheet_doc)
         logger.debug(f"Extracted worksheet data: {worksheet_data}")
+
+        # Apply optional editorial review
+        from .ai_editor import apply_editorial_review
+
+        worksheet_data = apply_editorial_review(
+            worksheet_data, level=args.editor_level, model=args.model
+        )
 
         # Prompt for missing fields if not in dry-run mode
         if not args.dry_run:

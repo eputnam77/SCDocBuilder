@@ -10,6 +10,8 @@ python -m faa_sc_filler --template template.docx --worksheet input.docx
 - `--output`: Specify output filename
 - `--dry-run`: Preview changes without saving
 - `--need-token`: Custom token for missing fields (default: [[NEED:]])
+- `--editor-level`: Optional AI editorial level (`minimal`, `basic`, `full`)
+- `--model`: Model provider for editorial review (default: `OpenAI`)
 
 ## Web Interface
 

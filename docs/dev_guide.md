@@ -10,6 +10,7 @@ The application follows a modular design with these key components:
 - `validator.py`: Input validation
 - `cli.py`: Command-line interface
 - `webui.py`: Gradio web interface
+- `ai_editor.py`: Optional AI editorial review helpers
 
 ## Module Dependencies
 ```mermaid
