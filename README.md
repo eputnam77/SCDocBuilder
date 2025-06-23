@@ -14,9 +14,12 @@ pip install -r requirements.txt
 
 ```bash
 faa-sc-filler --template templates/SC_Notice_Template.docx \
-    --worksheet input/SC_worksheet.docx
+    --worksheet input/SC_worksheet.docx \
     --editor-level basic  # optional AI editorial review
 ```
+
+`--editor-level` accepts `minimal`, `basic`, or `full` and
+controls how aggressively the AI editor normalizes text.
 
 The processed document will be saved to the `output/` directory by default if no
 output path is provided.

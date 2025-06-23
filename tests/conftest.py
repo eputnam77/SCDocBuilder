@@ -8,6 +8,7 @@ from docx import Document
 
 if importlib.util.find_spec("pytest_asyncio"):
     import pytest_asyncio  # type: ignore
+
     pytest_plugins = ["pytest_asyncio"]
     assert pytest_asyncio
 

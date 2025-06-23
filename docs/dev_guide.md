@@ -11,6 +11,9 @@ The application follows a modular design with these key components:
 - `cli.py`: Command-line interface
 - `webui.py`: Gradio web interface
 - `ai_editor.py`: Optional AI editorial review helpers
+  - Supports *minimal*, *basic*, and *full* levels
+  - Edit types: whitespace trimming, space normalization,
+    sentence capitalization, and uppercase conversion
 
 ## Module Dependencies
 ```mermaid

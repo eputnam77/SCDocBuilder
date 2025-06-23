@@ -13,6 +13,17 @@ python -m faa_sc_filler --template template.docx --worksheet input.docx
 - `--editor-level`: Optional AI editorial level (`minimal`, `basic`, `full`)
 - `--model`: Model provider for editorial review (default: `OpenAI`)
 
+### AI Editorial Review Levels
+
+The optional AI editor performs rule-based cleanups on
+`{Summary}`, `{Description}`, and `{SpecialConditions}` fields.
+
+| Level   | Applied edits                                        |
+|---------|------------------------------------------------------|
+| minimal | Trim whitespace and collapse multiple spaces         |
+| basic   | Apply *minimal* edits and capitalize each sentence   |
+| full    | Apply *basic* edits and convert text to uppercase    |
+
 ## Web Interface
 
 1. Open the Gradio interface
