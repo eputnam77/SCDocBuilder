@@ -1,63 +1,58 @@
 from typing import Dict, List
 
 # Field mappings for worksheet extraction
-FIELD_MAPPINGS: Dict[str, str] = {
+_RAW_FIELD_MAPPINGS: Dict[str, str] = {
     "14 CFR Part": "{CFRPart}",
     "Docket No.": "{DocketNo}",
     "Notice No.": "{NoticeNo}",
     "Final Notice No.": "{FinalNoticeNo}",
-    "Name of Modifier:": "{Modifier}",
-    "4[Name of Modifier]": "{Modifier}",
-    "Applicant name:": "{ApplicantName}",
-    "Applicant name": "{ApplicantName}", # Without colon
-    "Airplane manufacturer:": "{AirplaneManufacturer}",
-    "Airplane manufacturer": "{AirplaneManufacturer}", # Without colon
-    "Airplane model:": "{AirplaneModel}",
-    "Airplane model": "{AirplaneModel}", # Without colon
-    "Derivative model (if applicable):": "{Derivative}",
-    "Subject of special conditions:": "{SubjectOfSC}",
-    "Subject of special conditions": "{SubjectOfSC}", # Without colon
-    "CPN project number:": "{CPN}",
-    "CPN project number": "{CPN}", # Without colon
-    "Date of application:": "{ApplicationDate}",
+    "Name of Modifier": "{Modifier}",
+    "Applicant name": "{ApplicantName}",
+    "Airplane manufacturer": "{AirplaneManufacturer}",
+    "Airplane model": "{AirplaneModel}",
+    "Derivative model (if applicable)": "{Derivative}",
+    "Subject of special conditions": "{SubjectOfSC}",
+    "CPN project number": "{CPN}",
     "Date of application": "{ApplicationDate}",
-    "Anticipated certification date:": "{CertDate}",
-    "Anticipated certification date": "{CertDate}", # Without colon
-    "certification date": "{CertDate}",  # Alternative format
-    "Anticipated delivery date:": "{DeliveryDate}",
-    "Type of airplane: transport category, freighter, VIP, business jet, etc.:": "{AirplaneType}",
+    "Anticipated certification date": "{CertDate}",
+    "certification date": "{CertDate}",
+    "Anticipated delivery date": "{DeliveryDate}",
     "Type of airplane: transport category, freighter, VIP, business jet, etc.": "{AirplaneType}",
-    "a. Type of airplane: transport category, freighter, VIP, business jet, etc.:": "{AirplaneType}",
-    "Number of engines (twin-engine, etc.):": "{NumberEngines}",
-    "Number of engines (twin-engine, etc.)": "{NumberEngines}", # Without colon
-    "b. Number of engines (twin-engine, etc.):": "{NumberEngines}",
-    "Maximum passenger capacity of all listed aircraft:": "{PassengerCapacity}",
-    "Maximum passenger capacity of all listed aircraft": "{PassengerCapacity}", # Without colon
-    "c. Maximum passenger capacity of all listed aircraft:": "{PassengerCapacity}",
-    "Maximum takeoff weight of all listed aircraft:": "{TakeoffWeight}",
-    "Maximum takeoff weight of all listed aircraft": "{TakeoffWeight}", # Without colon
-    "d. Maximum takeoff weight of all listed aircraft:": "{TakeoffWeight}",
-    "TC number (does not apply to new TC project):": "{TCNumber}",
-    "TC number (does not apply to new TC project)": "{TCNumber}", # Without colon
-    "TC number": "{TCNumber}", # Without colon
-    "e. TC number (does not apply to new TC project):": "{TCNumber}",
-    "Name of SME:": "{SMEName}",
-    "Section name:": "{SMESection}",
-    "Routing symbol:": "{SMERoutingSymbol}",
-    "SME Regional Office address:": "{SMEROAddress}",
-    "Telephone phone no:": "{SMEPhone}",
-    "E-mail:": "{SMEEmail}",
+    "Number of engines (twin-engine, etc.)": "{NumberEngines}",
+    "Maximum passenger capacity of all listed aircraft": "{PassengerCapacity}",
+    "Maximum takeoff weight of all listed aircraft": "{TakeoffWeight}",
+    "TC number (does not apply to new TC project)": "{TCNumber}",
+    "TC number": "{TCNumber}",
+    "Name of SME": "{SMEName}",
+    "Section name": "{SMESection}",
+    "Routing symbol": "{SMERoutingSymbol}",
+    "SME Regional Office address": "{SMEROAddress}",
+    "Telephone phone no": "{SMEPhone}",
+    "E-mail": "{SMEEmail}",
     "Briefly (one to three sentences) provide a summary of the novel or unusual design features of the airplane.": "{Summary}",
     "Provide a detailed discussion of the special conditions.": "{Description}",
     "Provide the text of the special conditions.": "{SpecialConditions}",
-    "6. Check the appropriate box and complete:": "{ProjectType}"
+    "6. Check the appropriate box and complete": "{ProjectType}",
+}
+
+
+def _normalize(key: str) -> str:
+    import re
+
+    key = key.strip()
+    key = re.sub(r"^[a-z]\.|^[0-9]+\.", "", key, flags=re.IGNORECASE).strip()
+    return key.rstrip(":")
+
+
+FIELD_MAPPINGS: Dict[str, str] = {
+    _normalize(name): placeholder for name, placeholder in _RAW_FIELD_MAPPINGS.items()
 }
 
 CHECKBOX_MAPPINGS = {
     "☒ This is a new TC project": "new TC",
     "☒ This is an amended TC project": "amended TC",
     "☒ This is a change": "change",
-    "☒ This is an STC project": "STC"
+    "☒ This is an STC project": "STC",
 }
 
 MULTILINE_FIELDS: List[str] = [
