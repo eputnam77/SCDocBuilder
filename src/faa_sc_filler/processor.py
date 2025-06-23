@@ -2,7 +2,7 @@ import logging
 from typing import Dict, Optional, Tuple, Union
 
 from docx.document import Document as DocumentType
-from .config import EXIT_SUCCESS, EXIT_REPLACEMENT_ERROR
+from .config import DEFAULT_CONFIG, EXIT_SUCCESS, EXIT_REPLACEMENT_ERROR
 from .replacer import PlaceholderReplacer
 from .extractor import WorksheetExtractor
 from .validator import DocumentValidator
@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 class DocumentProcessor:
     """Orchestrates document processing operations."""
 
-    def __init__(self):
+    def __init__(self, need_token: str = DEFAULT_CONFIG["need_token"]):
         logger.debug("Initializing DocumentProcessor")
         self.extractor = WorksheetExtractor()
-        self.replacer = PlaceholderReplacer()
+        self.replacer = PlaceholderReplacer(need_token=need_token)
         self.validator = DocumentValidator()
         self.replacements = {}
 
@@ -64,6 +64,8 @@ class DocumentProcessor:
             return None, diff
 
         try:
+            if isinstance(template, str):
+                self.validator.validate_docx(template)
             # Use PlaceholderReplacer's process_document directly
             self.replacer.process_document(
                 template,

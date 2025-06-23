@@ -2,7 +2,7 @@
 name = "faa-sc-filler"
 version = "0.1.0"
 description = "FAA Special Conditions Template Filler"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["OpenAI <info@openai.com>"]
 readme = "README.md"
 packages = [{include = "faa_sc_filler", from = "src"}]
 
