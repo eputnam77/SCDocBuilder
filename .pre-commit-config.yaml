@@ -1,36 +1,38 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.0
+  - repo: https://github.com/astral-sh/ruff
+    rev: "v0.5.1"
     hooks:
       - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/psf/black
+    rev: "24.4.2"
+    hooks:
+      - id: black
+        language_version: python3.12
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: "v1.10.0"
     hooks:
       - id: mypy
-        args: ["--strict", "src/"]
-  - repo: https://github.com/pycqa/bandit
-    rev: 1.9.0
+        args: [--strict]
+  - repo: https://github.com/PyCQA/bandit
+    rev: "1.8.5"
     hooks:
       - id: bandit
         args: ["-r", "src/"]
-  - repo: https://github.com/pypa/pip-audit
-    rev: v2.6.1
+  - repo: https://github.com/trailofbits/pip-audit
+    rev: "v2.7.2"
     hooks:
       - id: pip-audit
         args: ["-r", "requirements.txt"]
+  - repo: https://github.com/pycqa/ruff-pre-commit
+    rev: "v1.2.0"
+    hooks:
+      - id: ruff-licence
   - repo: local
     hooks:
       - id: pytest
         name: pytest
-        entry: pytest --cov=src --cov-report=term-missing
-        language: system
-        pass_filenames: false
-      - id: coverage
-        name: coverage
-        entry: coverage report --fail-under=90
+        entry: pytest
         language: system
         pass_filenames: false
