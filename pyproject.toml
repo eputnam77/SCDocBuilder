@@ -7,7 +7,7 @@ build-backend = "poetry.core.masonry.api"
 name        = "faa-sc-filler"
 version     = "0.1.0"
 description = "FAA Special Conditions Template Filler"
-authors     = ["OpenAI <info@openai.com>"]
+authors     = ["SpecialConditions Team <team@example.com>"]
 readme      = "README.md"
 packages    = [{ include = "faa_sc_filler", from = "src" }]
 
