@@ -1,42 +1,79 @@
-[tool.poetry]
-name = "faa-sc-filler"
-version = "0.1.0"
-description = "FAA Special Conditions Template Filler"
-authors = ["OpenAI <info@openai.com>"]
-readme = "README.md"
-packages = [{include = "faa_sc_filler", from = "src"}]
-
-[tool.poetry.dependencies]
-python = ">=3.10,<=3.12.1"
-python-docx = "^1.0.0"
-gradio = "^3.50.2"  # Downgrade to 3.x series
-rich = "^13.7.0"
-python-dateutil = "^2.8.2"
-streamlit = "^1.32.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-pytest-asyncio = "^0.23.5"
-pytest-cov = "^5.0.0"
-coverage = "^7.5.0"
-hypothesis = "^6.0.0"
-black = "^24.4.2"
-ruff = "^0.5.0"
-mypy = "^1.10.0"
-bandit = "^1.9.0"
-pre-commit = "^3.7.0"
-pip-audit = "^2.6.1"
-isort = "^5.12.0"
-
+# ───────────────────── core metadata & packaging ───────────────────────────────
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry]
+name        = "faa-sc-filler"
+version     = "0.1.0"
+description = "FAA Special Conditions Template Filler"
+authors     = ["OpenAI <info@openai.com>"]
+readme      = "README.md"
+packages    = [{ include = "faa_sc_filler", from = "src" }]
+
+[tool.poetry.dependencies]
+python            = ">=3.10,<=3.12.1"
+python-docx       = "^1.0.0"
+gradio            = "^3.50.2"          # pinned to 3.x series
+rich              = "^13.7.0"
+python-dateutil   = "^2.8.2"
+streamlit         = "^1.32.0"
+
+# ───────────── dev / quality-assurance tools ───────────────────────────────────
+[tool.poetry.group.dev.dependencies]
+pytest            = "^8.0.0"
+pytest-asyncio    = "^0.23.5"
+pytest-cov        = "^5.0.0"
+coverage          = "^7.5.0"
+hypothesis        = "^6.0.0"
+
+black             = "^24.4.2"
+ruff              = "^0.5.0"
+
+mypy              = "^1.10.0"
+
+# latest published release is 1.8.x — include the **toml** extra so Bandit
+# can parse this file when invoked with -c pyproject.toml    :contentReference[oaicite:0]{index=0}
+bandit            = { version = "^1.8.5", extras = ["toml"] }
+
+pre-commit        = "^3.7.0"
+pip-audit         = "^2.6.1"
+isort             = "^5.12.0"
+
+# ─────────────────── scripts / entry points ────────────────────────────────────
 [tool.poetry.scripts]
 faa-sc-filler = "faa_sc_filler.cli:main"
 
+# ─────────────── pytest (already present, unchanged) ───────────────────────────
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
 markers = [
-    "asyncio: mark test as async/await test"
+  "asyncio: mark test as async/await test"
 ]
+
+# ───────────────────── code-style & linting ────────────────────────────────────
+[tool.black]
+target-version = ["py312"]   # matches the upper bound in python requirement
+line-length    = 88
+
+[tool.ruff]
+target-version = "py312"
+line-length    = 88
+
+# ────────────────────── static typing (mypy) ───────────────────────────────────
+[tool.mypy]
+python_version         = "3.12"
+strict                 = true          # equivalent to --strict on CLI
+ignore_missing_imports = true          # relax later if you prefer
+# plugins              = ["pydantic.mypy"]   # uncomment if you adopt Pydantic v2
+
+# ────────────────── security scanning (Bandit) ────────────────────────────────
+[tool.bandit]
+targets      = ["src/faa_sc_filler"]
+exclude_dirs = ["tests", ".venv", "build", "dist"]
+skips        = ["B101", "B110", "B311"]   # noisy for assert/try-pass/random
+
+# Example plugin-specific override
+[tool.bandit.any_other_function_with_shell_equals_true]
+no_shell = ["os.execl", "os.execle", "os.spawnl", "os.spawnv"]
+shell    = ["os.system", "subprocess.Popen"]
