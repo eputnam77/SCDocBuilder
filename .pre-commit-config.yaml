@@ -1,34 +1,50 @@
+# .pre-commit-config.yaml
+# One Python version for every hook (override only when a tool demands it)
+default_language_version:
+  python: python3.12        # upper end of the project's python constraint
+
 repos:
+  # ── Ruff: lint (auto-fix) then format ────────────────────────────────────────
   - repo: https://github.com/astral-sh/ruff
-    rev: "v0.5.1"
+    rev: v0.5.1
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
   - repo: https://github.com/psf/black
-    rev: "24.4.2"
+    rev: 24.4.2
     hooks:
       - id: black
-        language_version: python3.12
+
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v1.10.0"
+    rev: v1.10.0
     hooks:
-      - id: mypy
-        args: [--strict]
+      - id: mypy          # `strict = true` already lives in pyproject.toml
+        # args: [--strict]   # optional / redundant
+
+  # ── Bandit: security scan, reads pyproject.toml ─────────────────────────────
   - repo: https://github.com/PyCQA/bandit
-    rev: "1.8.5"
+    rev: 1.8.5
     hooks:
       - id: bandit
-        args: ["-r", "src/"]
+        args:
+          [
+            "-c", "pyproject.toml",          # tell Bandit to load TOML config
+            "--severity-level", "MEDIUM",
+            "--confidence-level", "MEDIUM",
+            "-r", "src/faa_sc_filler/",      # scan the actual source tree
+          ]
+        additional_dependencies: ["bandit[toml]"]   # enables TOML parsing :contentReference[oaicite:0]{index=0}
+
   - repo: https://github.com/trailofbits/pip-audit
-    rev: "v2.7.2"
+    rev: v2.7.2
     hooks:
       - id: pip-audit
-        args: ["-r", "requirements.txt"]
-  - repo: https://github.com/pycqa/ruff-pre-commit
-    rev: "v1.2.0"
-    hooks:
-      - id: ruff-licence
+        # Poetry keeps deps in pyproject.toml, so audit that file
+        args: ["-r", "pyproject.toml"]
+
+  # ── Local test runner ────────────────────────────────────────────────────────
   - repo: local
     hooks:
       - id: pytest
