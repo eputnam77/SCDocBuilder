@@ -7,7 +7,6 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from . import processing
 from .io import load_document, save_document, validate_input_files
@@ -18,9 +17,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--template", required=True, help="Path to template .docx")
-    parser.add_argument(
-        "--worksheet", required=True, help="Path to worksheet .docx"
-    )
+    parser.add_argument("--worksheet", required=True, help="Path to worksheet .docx")
     parser.add_argument("--output", help="Output path for processed document")
     parser.add_argument(
         "--dry-run", action="store_true", help="Print JSON diff without saving"

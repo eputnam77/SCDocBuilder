@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
 from typing import Any, Dict
 
 from docx import Document
@@ -92,6 +91,7 @@ def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
         for run in paragraph.runs:
             text = run.text
             if "[[OPTION_" in text:
+
                 def repl(match: re.Match[str]) -> str:
                     option, content = match.group(1), match.group(2)
                     return content if option == active else ""
