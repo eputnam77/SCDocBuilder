@@ -184,8 +184,49 @@ Deliver on PyPI as `faa-sc-replacer` with `pipx install`.
 ---
 
 ### 15. Glossary
-*SC* – Special Conditions (14 CFR § 21.16)  
-*Worksheet* – Internal FAA form capturing project data  
-*Template* – Word document with placeholders  
+*SC* – Special Conditions (14 CFR § 21.16)
+*Worksheet* – Internal FAA form capturing project data
+*Template* – Word document with placeholders
 *Placeholder* – Token like `{Applicant name}` to be replaced
+
+---
+
+### 16. Implementation Guidelines
+
+The utility should be structured as a set of small, single‑purpose functions so
+future contributors can easily extend or embed the code.  Suggested helpers:
+
+```
+load_document(path)
+extract_fields(worksheet_doc)
+replace_placeholders(template_doc, fields)
+apply_conditionals(template_doc, action_choice)
+validate_input_files(template_path, worksheet_path)
+save_document(doc, output_path)
+```
+
+Other best practices:
+
+* Traverse **all** parts of the DOCX – body paragraphs, tables, headers,
+  footers and, when possible, text boxes – to avoid leaving placeholders behind.
+* Perform robust validation and return clear error codes if files are missing,
+  invalid or lack required fields.
+* Allow a YAML/JSON file to define the placeholder schema so new tokens can be
+  added without code changes.
+* The `--dry-run` option should print a JSON summary of replacements without
+  writing the output file.
+* Provide minimal logging with a configurable level.
+* Optionally support a **batch mode** that processes every worksheet in a
+  directory.
+* Include unit tests so the package can be embedded with confidence.
+
+| Improvement Area      | Value                     | How Complex? |
+| --------------------- | ------------------------- | ------------ |
+| Modular functions     | Easy maintenance          | Low          |
+| Full DOCX traversal   | Fewer missed placeholders | Low‑Med      |
+| Input validation      | More reliable embedding   | Low          |
+| Dry‑run preview       | Safer, easier debugging   | Low          |
+| Minimal logging       | Easy troubleshooting      | Low          |
+| Configurable schema   | Adaptable to change       | Low‑Med      |
+| Batch mode (optional) | Workflow boost            | Low          |
 
