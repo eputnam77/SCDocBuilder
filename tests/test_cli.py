@@ -2,7 +2,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from faa_sc_replacer.cli import main, parse_args
+import pytest
+
+from faa_sc_replacer.cli import ErrorCode, main, parse_args
 from docx import Document
 
 
@@ -57,3 +59,20 @@ def test_main_prints_output_path(tmp_path: Path, capsys: Any, monkeypatch: Any) 
     assert expected.exists()
     captured = capsys.readouterr()
     assert captured.out.strip() == str(expected.resolve())
+
+
+def test_main_missing_file_exits_with_code(tmp_path: Path) -> None:
+    """CLI should exit with ENOFILE when files are missing."""
+
+    missing = tmp_path / "missing.docx"
+    with pytest.raises(SystemExit) as exc:
+        main(
+            [
+                "--template",
+                str(missing),
+                "--worksheet",
+                str(missing),
+            ]
+        )
+
+    assert exc.value.code == ErrorCode.ENOFILE
