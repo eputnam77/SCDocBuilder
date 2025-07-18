@@ -27,3 +27,8 @@
 
 ## Epic 5: Documentation
 - [ ] Expand `README.md` with installation steps, quick-start usage, and contribution guidelines. (`tests/e2e/features/readme_expansion.feature`)
+
+## Epic 6: REST API
+- [ ] Create FastAPI app with `/generate` endpoint accepting template and worksheet uploads.
+- [ ] Add `/health` endpoint returning `{"status": "ok"}`.
+- [ ] Write tests using `TestClient` covering both endpoints.
