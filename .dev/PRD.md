@@ -15,6 +15,7 @@ Rule‑writers in the FAA Aircraft Certification Service must turn a *Special‑
 |Replace placeholders inside the body, tables, headers & footers of a DOCX|✔|PDF or other formats|
 |CLI execution (`python sc_replacer.py --template … --worksheet …`)|✔|Desktop GUI|
 |Web UI with Gradio (upload worksheet, click *Generate*, download DOCX)|✔|Enterprise SharePoint add‑in|
+|REST API with FastAPI (upload worksheet, return DOCX)|✔|User management & authentication|
 |Robust logging, validation, and test suite|✔|Automatic style rewriting by AI (future)|
 |Conditional text for Worksheet #6 action (TC, amended TC, change, STC)|✔|Other conditional logic|
 
@@ -121,6 +122,25 @@ demo.launch()
 ```
 Gradio’s `File` and `DownloadButton` components are supported for upload/download citeturn0search1turn0search5.
 
+### 8a. FastAPI API Spec
+
+```python
+from fastapi import FastAPI, UploadFile
+from fastapi.responses import FileResponse
+
+app = FastAPI()
+
+@app.post("/generate")
+async def generate(template: UploadFile, worksheet: UploadFile):
+    path, _ = run_replacer(template.file, worksheet.file, dry_run=False)
+    return FileResponse(path)
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+```
+
+
 ---
 
 ### 9. Logging & Debugging Plan
@@ -167,8 +187,9 @@ Gradio’s `File` and `DownloadButton` components are supported for upload/downl
 ---
 
 ### 13. Dependencies & Packaging
-* `python-docx >= 1.1.2` – DOCX manipulation citeturn0search8  
-* `gradio >= 4.16` – Web UI citeturn0search1  
+* `python-docx >= 1.1.2` – DOCX manipulation citeturn0search8
+* `gradio >= 4.16` – Web UI citeturn0search1
+* `fastapi` – REST API service
 * `python-dateutil`, `pytest`, `rich` (optional nicer logs)
 
 Deliver on PyPI as `faa-sc-replacer` with `pipx install`.
