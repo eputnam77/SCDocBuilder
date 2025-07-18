@@ -60,3 +60,7 @@ def main(argv: list[str] | None = None) -> None:
     else:
         save_document(template_doc, output)
         print(str(output))
+
+
+if __name__ == "__main__":
+    main()

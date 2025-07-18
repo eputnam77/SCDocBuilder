@@ -6,6 +6,9 @@ authors = ["FAA Automation Team <dev@example.com>"]
 readme = "README.md"
 packages = [{include = "faa_sc_replacer", from = "src"}]
 
+[tool.poetry.scripts]
+faa-sc-replacer = "faa_sc_replacer.cli:main"
+
 [tool.poetry.dependencies]
 python = "^3.12"
 python-docx = "^1.1.2"
