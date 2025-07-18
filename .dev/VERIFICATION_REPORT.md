@@ -18,7 +18,7 @@ This report cross references **PRD.md**, **TASKS.md**, and the current codebase 
 |F‑4 Multiline answer handling|No logic for reading lines after questions present in code|
 |F‑5 Conditional blocks `[[OPTION_n]]`|No implementation present in any module|
 |F‑6/7 CLI output path & stdout|Auto‑naming is implemented, but there is no CLI to print path|
-|F‑8 Exit codes and error categories|No error handling or exit codes defined|
+|F‑8 Exit codes and error categories|`ErrorCode` enum and CLI `main` map FileNotFoundError→`ENOFILE`, ValueError→`EVALID`, others→`EREPLACE`【F:src/faa_sc_replacer/cli.py†L17-L83】|
 |F‑9 `--dry-run` diff|Feature absent|
 |Validation & security rules|`validate_input_files` stubbed with NotImplementedError【F:src/faa_sc_replacer/io.py†L10-L12】|
 |Logging levels and rotation|Only basic logging configured; no rotation or log‑level CLI option|
