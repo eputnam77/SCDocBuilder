@@ -6,6 +6,16 @@ import re
 from typing import Any, Dict
 
 from docx.document import Document
+from docx.text.paragraph import Paragraph
+
+
+def _iter_textbox_paragraphs(part: Any) -> list[Paragraph]:
+    """Return paragraphs contained in text boxes of ``part``."""
+    paragraphs: list[Paragraph] = []
+    for txbx in part.element.xpath(".//w:txbxContent"):
+        for p in txbx.xpath(".//w:p"):
+            paragraphs.append(Paragraph(p, part))
+    return paragraphs
 
 
 def extract_fields(doc: Document) -> Dict[str, str]:
@@ -60,6 +70,8 @@ def replace_placeholders(doc: Document, values: Dict[str, str]) -> None:
 
     for paragraph in doc.paragraphs:
         process_paragraph(paragraph)
+    for paragraph in _iter_textbox_paragraphs(doc.part):
+        process_paragraph(paragraph)
 
     for table in doc.tables:
         for row in table.rows:
@@ -76,6 +88,8 @@ def replace_placeholders(doc: Document, values: Dict[str, str]) -> None:
                     for cell in row.cells:
                         for paragraph in cell.paragraphs:
                             process_paragraph(paragraph)
+            for paragraph in _iter_textbox_paragraphs(hdr.part):
+                process_paragraph(paragraph)
 
 
 def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
@@ -100,6 +114,8 @@ def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
 
     for paragraph in doc.paragraphs:
         process_paragraph(paragraph)
+    for paragraph in _iter_textbox_paragraphs(doc.part):
+        process_paragraph(paragraph)
 
     for table in doc.tables:
         for row in table.rows:
@@ -116,3 +132,5 @@ def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
                     for cell in row.cells:
                         for paragraph in cell.paragraphs:
                             process_paragraph(paragraph)
+            for paragraph in _iter_textbox_paragraphs(hdr.part):
+                process_paragraph(paragraph)

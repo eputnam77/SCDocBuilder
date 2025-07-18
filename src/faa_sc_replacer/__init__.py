@@ -1,7 +1,7 @@
 # Standard library imports
 import os
 import logging
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 from datetime import datetime
 
 # Third-party imports
@@ -141,6 +141,12 @@ class PlaceholderReplacer:
                 for paragraph in cell.paragraphs:
                     self.process_paragraph(paragraph, replacements)
 
+    def process_textboxes(self, part: Any, replacements: Dict[str, str]) -> None:
+        """Process all text boxes within the given document part."""
+        for txbx in part.element.xpath(".//w:txbxContent"):
+            for p in txbx.xpath(".//w:p"):
+                self.process_paragraph(Paragraph(p, part), replacements)
+
     def process_document(
         self, template_path: str, worksheet_path: str, output_path: Optional[str] = None
     ) -> None:
@@ -165,9 +171,10 @@ class PlaceholderReplacer:
             # Extract content from worksheet
             replacements = self.extract_worksheet_data(worksheet_path)
 
-            # Process all paragraphs and tables including headers/footers
+            # Process all paragraphs, tables, and text boxes including headers/footers
             for paragraph in doc.paragraphs:
                 self.process_paragraph(paragraph, replacements)
+            self.process_textboxes(doc, replacements)
 
             for table in doc.tables:
                 self.process_table(table, replacements)
@@ -176,6 +183,7 @@ class PlaceholderReplacer:
                 for hdr in (section.header, section.footer):
                     for paragraph in hdr.paragraphs:
                         self.process_paragraph(paragraph, replacements)
+                    self.process_textboxes(hdr, replacements)
                     for table in hdr.tables:
                         self.process_table(table, replacements)
 
