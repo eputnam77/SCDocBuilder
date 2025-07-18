@@ -165,13 +165,19 @@ class PlaceholderReplacer:
             # Extract content from worksheet
             replacements = self.extract_worksheet_data(worksheet_path)
 
-            # Process all paragraphs
+            # Process all paragraphs and tables including headers/footers
             for paragraph in doc.paragraphs:
                 self.process_paragraph(paragraph, replacements)
 
-            # Process all tables
             for table in doc.tables:
                 self.process_table(table, replacements)
+
+            for section in doc.sections:
+                for hdr in (section.header, section.footer):
+                    for paragraph in hdr.paragraphs:
+                        self.process_paragraph(paragraph, replacements)
+                    for table in hdr.tables:
+                        self.process_table(table, replacements)
 
             # Generate output path if not provided
             if output_path is None:
