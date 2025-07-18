@@ -1,4 +1,3 @@
-import pytest
 from pathlib import Path
 
 from faa_sc_replacer.config import load_placeholder_schema

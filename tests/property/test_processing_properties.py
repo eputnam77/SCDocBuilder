@@ -1,4 +1,5 @@
 import pytest
+
 pytest.importorskip("hypothesis")
 
 from pathlib import Path
@@ -17,7 +18,7 @@ def test_extract_fields_roundtrip(tmp_path: Path) -> None:
 
     doc = Document()
     doc.add_paragraph("Applicant name: Test Co")
-    p = doc.add_paragraph("Action prompting special conditions:")
+    doc.add_paragraph("Action prompting special conditions:")
     doc.add_paragraph("1")
     path = tmp_path / "w.docx"
     doc.save(path)
@@ -46,6 +47,6 @@ def test_apply_conditionals_keeps_selected(tmp_path: Path) -> None:
     from docx import Document
 
     doc = Document()
-    para = doc.add_paragraph("[[OPTION_1]]A[[/OPTION_1]][[OPTION_2]]B[[/OPTION_2]]")
+    doc.add_paragraph("[[OPTION_1]]A[[/OPTION_1]][[OPTION_2]]B[[/OPTION_2]]")
     apply_conditionals(doc, {"{Action option}": "1"})
     assert doc.paragraphs[0].text == "A"
