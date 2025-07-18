@@ -5,17 +5,33 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from docx import Document
+
+MAX_SIZE = 10 * 1024 * 1024  # 10 MB
+
 
 def validate_input_files(template: Path, worksheet: Path) -> None:
-    """Validate input files exist and are under size limits (stub)."""
-    raise NotImplementedError("Input validation not implemented yet")
+    """Validate that the provided files exist, are DOCX files and <10MB."""
+
+    for file in (template, worksheet):
+        if not file.exists():
+            raise FileNotFoundError(str(file))
+        if file.suffix.lower() != ".docx":
+            raise ValueError(f"{file} is not a .docx file")
+        if file.stat().st_size > MAX_SIZE:
+            raise ValueError(f"{file} exceeds size limit")
 
 
 def load_document(path: Path) -> Any:
-    """Load a Word document from ``path`` (stub)."""
-    raise NotImplementedError("Document loading not implemented yet")
+    """Load a Word document from ``path`` using ``python-docx``."""
+
+    validate_input_files(path, path)  # same file for both params to reuse checks
+    return Document(str(path))
 
 
 def save_document(doc: Any, path: Path) -> None:
-    """Save a Word document to ``path`` (stub)."""
-    raise NotImplementedError("Document saving not implemented yet")
+    """Persist ``doc`` to ``path``."""
+
+    if path.suffix.lower() != ".docx":
+        raise ValueError("Output path must be .docx")
+    doc.save(str(path))

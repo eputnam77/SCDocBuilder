@@ -1,36 +1,51 @@
 import pytest
-from hypothesis import given
-from hypothesis import strategies as st
+pytest.importorskip("hypothesis")
 
-from typing import Any
+from pathlib import Path
 
 from faa_sc_replacer.processing import (
     extract_fields,
     replace_placeholders,
     apply_conditionals,
 )
-from tests.property.strategies import placeholder_dict
 
 
 @pytest.mark.property
-@given(doc=st.just(object()))
-def test_extract_fields_not_implemented(doc: Any) -> None:
-    """extract_fields is not yet implemented."""
-    with pytest.raises(NotImplementedError):
-        extract_fields(doc)
+def test_extract_fields_roundtrip(tmp_path: Path) -> None:
+    """extract_fields should return mappings from worksheet."""
+    from docx import Document
+
+    doc = Document()
+    doc.add_paragraph("Applicant name: Test Co")
+    p = doc.add_paragraph("Action prompting special conditions:")
+    doc.add_paragraph("1")
+    path = tmp_path / "w.docx"
+    doc.save(path)
+
+    loaded = Document(str(path))
+    fields = extract_fields(loaded)
+    assert fields["{Applicant name}"] == "Test Co"
+    assert fields["{Action option}"] == "1"
 
 
 @pytest.mark.property
-@given(doc=st.just(object()), values=placeholder_dict())
-def test_replace_placeholders_not_implemented(doc: Any, values: dict[str, str]) -> None:
-    """replace_placeholders is not yet implemented."""
-    with pytest.raises(NotImplementedError):
-        replace_placeholders(doc, values)
+def test_replace_placeholders_updates_doc(tmp_path: Path) -> None:
+    """replace_placeholders should modify document text."""
+    from docx import Document
+
+    doc = Document()
+    doc.add_paragraph("Hello {name}")
+    values = {"{name}": "World"}
+    replace_placeholders(doc, values)
+    assert "World" in doc.paragraphs[0].text
 
 
 @pytest.mark.property
-@given(doc=st.just(object()), values=placeholder_dict())
-def test_apply_conditionals_not_implemented(doc: Any, values: dict[str, str]) -> None:
-    """apply_conditionals is not yet implemented."""
-    with pytest.raises(NotImplementedError):
-        apply_conditionals(doc, values)
+def test_apply_conditionals_keeps_selected(tmp_path: Path) -> None:
+    """Only the selected OPTION block should remain."""
+    from docx import Document
+
+    doc = Document()
+    para = doc.add_paragraph("[[OPTION_1]]A[[/OPTION_1]][[OPTION_2]]B[[/OPTION_2]]")
+    apply_conditionals(doc, {"{Action option}": "1"})
+    assert doc.paragraphs[0].text == "A"

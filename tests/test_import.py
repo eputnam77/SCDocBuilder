@@ -1,6 +1,5 @@
-import pytest
+def test_package_importable() -> None:
+    """The package should be importable."""
+    import faa_sc_replacer
 
-
-def test_package_importable_placeholder() -> None:
-    """Package should be importable as a library."""
-    pytest.fail("package import tests not implemented")
+    assert hasattr(faa_sc_replacer, "PlaceholderReplacer")
