@@ -1,4 +1,5 @@
 import pytest
+
 pytest.importorskip("hypothesis")
 from hypothesis import given
 
@@ -10,7 +11,9 @@ from tests.property.strategies import docx_path
 
 @pytest.mark.property
 @given(template=docx_path(), worksheet=docx_path())
-def test_validate_input_files_accepts_paths(tmp_path: Path, template: Path, worksheet: Path) -> None:
+def test_validate_input_files_accepts_paths(
+    tmp_path: Path, template: Path, worksheet: Path
+) -> None:
     """validate_input_files should accept existing DOCX files."""
 
     t = tmp_path / template.name
