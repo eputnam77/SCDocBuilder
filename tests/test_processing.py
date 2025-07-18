@@ -34,3 +34,13 @@ def test_apply_conditionals() -> None:
     doc.add_paragraph("[[OPTION_1]]Yes[[/OPTION_1]][[OPTION_2]]No[[/OPTION_2]]")
     apply_conditionals(doc, {"{Action option}": "1"})
     assert doc.paragraphs[0].text == "Yes"
+
+
+def test_apply_conditionals_across_runs() -> None:
+    doc = Document()
+    para = doc.add_paragraph()
+    para.add_run("[[OPTION_1]]Yes")
+    para.add_run("[[/OPTION_1]]")
+    para.add_run("[[OPTION_2]]No[[/OPTION_2]]")
+    apply_conditionals(doc, {"{Action option}": "1"})
+    assert doc.paragraphs[0].text == "Yes"

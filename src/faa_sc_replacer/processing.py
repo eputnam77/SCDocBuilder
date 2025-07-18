@@ -18,6 +18,15 @@ def _iter_textbox_paragraphs(part: Any) -> list[Paragraph]:
     return paragraphs
 
 
+def _set_paragraph_text(paragraph: Paragraph, text: str) -> None:
+    """Replace paragraph runs with a single run containing ``text``."""
+
+    for run in list(paragraph.runs):
+        paragraph._p.remove(run._r)
+    if text:
+        paragraph.add_run(text)
+
+
 def extract_fields(doc: Document) -> Dict[str, str]:
     """Extract placeholder values from a worksheet document."""
 
@@ -101,16 +110,18 @@ def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
 
     pattern = re.compile(r"\[\[OPTION_(\d)\]\](.*?)\[\[/OPTION_\1\]\]", re.DOTALL)
 
-    def process_paragraph(paragraph: Any) -> None:
-        for run in paragraph.runs:
-            text = run.text
-            if "[[OPTION_" in text:
+    def process_paragraph(paragraph: Paragraph) -> None:
+        full_text = "".join(run.text for run in paragraph.runs)
+        if "[[OPTION_" not in full_text:
+            return
 
-                def repl(match: re.Match[str]) -> str:
-                    option, content = match.group(1), match.group(2)
-                    return content if option == active else ""
+        def repl(match: re.Match[str]) -> str:
+            option, content = match.group(1), match.group(2)
+            return content if option == active else ""
 
-                run.text = re.sub(pattern, repl, text)
+        new_text = re.sub(pattern, repl, full_text)
+        if new_text != full_text:
+            _set_paragraph_text(paragraph, new_text)
 
     for paragraph in doc.paragraphs:
         process_paragraph(paragraph)
