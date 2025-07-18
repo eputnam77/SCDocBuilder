@@ -11,7 +11,7 @@ from faa_sc_replacer.processing import (
 def _make_template(path: Path) -> None:
     doc = Document()
     doc.add_paragraph("Hello {name}")
-    doc.save(path)
+    doc.save(str(path))
 
 
 def test_extract_fields() -> None:

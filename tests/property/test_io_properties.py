@@ -1,16 +1,21 @@
-import pytest
-
-pytest.importorskip("hypothesis")
-from hypothesis import given
-
+import typing
+from typing import Any, Callable, TypeVar
 from pathlib import Path
-
+import pytest
 from faa_sc_replacer.io import validate_input_files
 from tests.property.strategies import docx_path
 
+F = TypeVar("F", bound=Callable[..., Any])
+
+if typing.TYPE_CHECKING:
+    from hypothesis import given as given_decorator
+else:
+    hypothesis = pytest.importorskip("hypothesis")
+    given_decorator: Callable[[F], F] = typing.cast(Callable[[F], F], hypothesis.given)
+
 
 @pytest.mark.property
-@given(template=docx_path(), worksheet=docx_path())
+@typing.cast(Any, given_decorator)(template=docx_path(), worksheet=docx_path())  # type: ignore[misc]
 def test_validate_input_files_accepts_paths(
     tmp_path: Path, template: Path, worksheet: Path
 ) -> None:

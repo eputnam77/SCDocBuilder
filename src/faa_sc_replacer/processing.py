@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-from docx import Document
+from docx.document import Document
 
 
 def extract_fields(doc: Document) -> Dict[str, str]:

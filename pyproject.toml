@@ -23,6 +23,7 @@ bandit = "^1.7"
 semgrep = "^1.74"
 playwright = "^1.43"
 pre-commit = "^3.7"
+pytest-cov = "^5.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -31,3 +32,10 @@ build-backend = "poetry.core.masonry.api"
 [tool.setuptools.packages.find]
 where = ["src"]
 exclude = ["tests*", ".dev*"]
+
+[tool.mypy]
+packages = ["faa_sc_replacer"]
+
+[[tool.mypy.overrides]]
+module = "hypothesis.*"
+ignore_missing_imports = true
