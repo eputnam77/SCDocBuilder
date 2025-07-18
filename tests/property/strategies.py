@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+import typing
 import pytest
 
-pytest.importorskip("hypothesis")
-from hypothesis import strategies as st
+if typing.TYPE_CHECKING:
+    from hypothesis import strategies as st
+else:
+    hypothesis = pytest.importorskip("hypothesis")
+    st = hypothesis.strategies
 
 
 def docx_path() -> st.SearchStrategy[Path]:

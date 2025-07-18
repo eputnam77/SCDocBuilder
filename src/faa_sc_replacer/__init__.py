@@ -22,10 +22,10 @@ class PlaceholderReplacer:
     from Special Condition worksheets.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the PlaceholderReplacer with common placeholder mappings."""
         # Dictionary to store placeholder mappings
-        self.placeholder_mappings = {}
+        self.placeholder_mappings: Dict[str, str] = {}
 
     def extract_worksheet_data(self, worksheet_path: str) -> Dict[str, str]:
         """
@@ -195,7 +195,7 @@ class PlaceholderReplacer:
             raise
 
 
-def main():
+def main() -> None:
     """Main function to demonstrate usage of the PlaceholderReplacer class."""
     try:
         # Initialize the replacer
@@ -216,7 +216,3 @@ def main():
     except Exception as e:
         logger.error(f"Error in main function: {str(e)}")
         raise
-
-
-if __name__ == "__main__":
-    main()

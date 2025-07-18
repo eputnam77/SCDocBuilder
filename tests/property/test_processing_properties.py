@@ -21,7 +21,7 @@ def test_extract_fields_roundtrip(tmp_path: Path) -> None:
     doc.add_paragraph("Action prompting special conditions:")
     doc.add_paragraph("1")
     path = tmp_path / "w.docx"
-    doc.save(path)
+    doc.save(str(path))
 
     loaded = Document(str(path))
     fields = extract_fields(loaded)
