@@ -49,9 +49,9 @@ def main(argv: list[str] | None = None) -> None:
     processing.apply_conditionals(template_doc, values)
 
     output = (
-        Path(args.output)
+        Path(args.output).resolve()
         if args.output
-        else Path(f"{template.stem}_{datetime.now():%Y%m%d_%H%M%S}.docx")
+        else Path(f"{template.stem}_{datetime.now():%Y%m%d_%H%M%S}.docx").resolve()
     )
 
     if args.dry_run:
