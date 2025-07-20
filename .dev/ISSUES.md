@@ -1,6 +1,6 @@
 # Known Issues
 
-- **MyPy** failed with `Source file found twice under different module names` in `src/faa_sc_replacer/__init__.py`.
+- **Unit tests** fail during collection because `python-docx` is not installed, causing `ModuleNotFoundError`.
 - **Coverage** checks could not run because `pytest-cov` / `coverage` are missing.
-- **Property tests** skipped due to missing Hypothesis.
+- **Property tests** fail for the same missing dependency.
 - **E2E tests** skipped due to missing Playwright.
