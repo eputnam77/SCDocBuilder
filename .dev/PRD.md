@@ -5,7 +5,7 @@
 ---
 
 ### 1. Problem Statement
-Rule‑writers in the FAA Aircraft Certification Service must turn a *Special‑Conditions Worksheet* (internal MS Word form) into a legally formatted *Special Conditions Notice* (template DOCX). Manual copy‑and‑paste is slow and error‑prone. The goal is to ship a Python utility that, from either the command line or a Gradio/Hugging Face Space UI, accepts a worksheet DOCX, replaces all placeholders in a template DOCX, and returns a finished Word file.
+Rule‑writers in the FAA Aircraft Certification Service must turn a *Special‑Conditions Worksheet* (internal MS Word form) into a legally formatted *Special Conditions Notice* (template DOCX). Manual copy‑and‑paste is slow and error‑prone. The goal is to ship a Python utility that accepts a worksheet DOCX, replaces all placeholders in a template DOCX, and returns a finished Word file.
 
 ---
 
@@ -14,7 +14,7 @@ Rule‑writers in the FAA Aircraft Certification Service must turn a *Special‑
 |-------|----|-----|
 |Replace placeholders inside the body, tables, headers & footers of a DOCX|✔|PDF or other formats|
 |CLI execution (`python sc_replacer.py --template … --worksheet …`)|✔|Desktop GUI|
-|Web UI with Gradio (upload worksheet, click *Generate*, download DOCX)|✔|Enterprise SharePoint add‑in|
+|Simple web UI for uploads and downloads|✔|Enterprise SharePoint add‑in|
 |REST API with FastAPI (upload worksheet, return DOCX)|✔|User management & authentication|
 |Robust logging, validation, and test suite|✔|Automatic style rewriting by AI (future)|
 |Conditional text for Worksheet #6 action (TC, amended TC, change, STC)|✔|Other conditional logic|
@@ -40,7 +40,7 @@ Rule‑writers in the FAA Aircraft Certification Service must turn a *Special‑
  • Placeholder text pattern: `[[OPTION_1]]…[[/OPTION_1]]`, etc.  
  • Rule: include exactly **one** option (matching the worksheet digit); delete the other three entirely.|
 |F‑6|Generate output filename `{template‑stem}_{timestamp}.docx` when `--output` is omitted.|
-|F‑7|Return the full path in CLI **stdout** and via Gradio `DownloadButton` (Gradio file component allows download paths) citeturn0search1turn0search5|
+|F‑7|Return the full path in CLI **stdout** and provide a download link in the web UI|
 |F‑8|Exit code 0 on success; non‑zero on handled error categories (`ENOFILE`, `EVALID`, `EREPLACE`).|
 |F‑9|Provide `--dry‑run` flag to print a JSON diff (`{placeholder: {"old":…, "new":…}}`) without writing a file.|
 
@@ -100,27 +100,9 @@ python sc_replacer.py \
 
 ---
 
-### 8. Gradio/Web UI Spec
+### 8. Web UI Spec
 
-```python
-with gr.Blocks(title="FAA Special Conditions Generator") as demo:
-    template_file = gr.File(label="SC Template (.docx)", file_types=['.docx'])
-    worksheet_file = gr.File(label="Worksheet (.docx)", file_types=['.docx'])
-    dry_run      = gr.Checkbox(label="Dry‑run (preview JSON diff)")
-    output_view  = gr.File(label="Generated Document")
-    diff_view    = gr.JSON()
-
-    def generate(template, worksheet, dry_run):
-        path, diff = run_replacer(template, worksheet, dry_run)
-        return (None if dry_run else path), (diff or None)
-
-    generate_btn = gr.Button("Generate")
-    generate_btn.click(generate,
-                       inputs=[template_file, worksheet_file, dry_run],
-                       outputs=[output_view, diff_view])
-demo.launch()
-```
-Gradio’s `File` and `DownloadButton` components are supported for upload/download citeturn0search1turn0search5.
+A lightweight browser interface should allow the user to upload a template and worksheet, select **dry‑run** mode, and download the generated document. Implementation details are not prescribed.
 
 ### 8a. FastAPI API Spec
 
@@ -188,7 +170,6 @@ def health() -> dict[str, str]:
 
 ### 13. Dependencies & Packaging
 * `python-docx >= 1.1.2` – DOCX manipulation citeturn0search8
-* `gradio >= 4.16` – Web UI citeturn0search1
 * `fastapi` – REST API service
 * `python-dateutil`, `pytest`, `rich` (optional nicer logs)
 

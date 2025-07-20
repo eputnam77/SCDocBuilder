@@ -2,7 +2,8 @@
 
 ## Epic 1: Project Setup
 - [ ] Restructure repository to match the layout in `.dev/AGENTS.md` (`src/`, `tests/`, `.dev`, etc.).
-- [ ] Initialize Poetry and create `pyproject.toml`/`poetry.lock` with dependencies (`python-docx`, `gradio`, `python-dateutil`, testing packages).
+- [ ] Initialize Poetry and create `pyproject.toml`/`poetry.lock` with dependencies (`python-docx`, `python-dateutil`, testing packages).
+- [ ] Remove all Gradio and Streamlit references from documentation and dependencies.
 
 ## Epic 2: CLI Implementation
 - [ ] Replace hard-coded file paths with an `argparse` CLI accepting `--template` and `--worksheet` (required) and `--output` (optional). (`tests/e2e/features/cli_argument_parsing.feature`)
