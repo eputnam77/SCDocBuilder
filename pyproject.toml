@@ -41,3 +41,7 @@ packages = ["faa_sc_replacer"]
 [[tool.mypy.overrides]]
 module = "hypothesis.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["docx", "docx.*"]
+ignore_missing_imports = true
