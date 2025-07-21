@@ -1,35 +1,31 @@
 # Development Tasks
 
-## Epic 1: Project Setup
-- [ ] Restructure repository to match the layout in `.dev/AGENTS.md` (`src/`, `tests/`, `.dev`, etc.).
-- [ ] Initialize Poetry and create `pyproject.toml`/`poetry.lock` with dependencies (`python-docx`, `python-dateutil`, testing packages).
-- [ ] Remove all Gradio and Streamlit references from documentation and dependencies.
+last_generated: 2025-07-21T14:29:12Z
 
-## Epic 2: CLI Implementation
-- [ ] Replace hard-coded file paths with an `argparse` CLI accepting `--template` and `--worksheet` (required) and `--output` (optional). (`tests/e2e/features/cli_argument_parsing.feature`)
-- [ ] Add `--dry-run` flag that prints a JSON diff instead of writing a file. (`tests/e2e/features/cli_dry_run.feature`).
-- [ ] When `--output` is omitted, save as `{template-stem}_{timestamp}.docx` and print the path on stdout. (`tests/e2e/features/output_auto_naming.feature`).
-- [ ] Validate file existence, extension, and size (<10 MB) before processing; exit with descriptive codes. (`tests/e2e/features/input_validation.feature`, `tests/property/test_io_properties.py`).
-- [ ] Refactor script into modular functions (`load_document`, `extract_fields`, `replace_placeholders`, `apply_conditionals`, `validate_input_files`, `save_document`). (`tests/property/test_processing_properties.py`)
-- [ ] Add minimal logging with configurable level. (`tests/e2e/features/logging_levels.feature`)
-- [ ] Optional batch mode to process all worksheets in a directory. (`tests/e2e/features/batch_mode.feature`)
-
-## Epic 3: Placeholder Replacement Logic
-- [ ] Traverse paragraphs, tables, headers, footers, numbered lists and textboxes for placeholders. (`tests/e2e/features/docx_traversal.feature`, `tests/property/test_processing_properties.py`)
-- [ ] Implement Worksheet #6 conditional blocks (`[[OPTION_n]]...[[/OPTION_n]]`) keeping only the selected option. (`tests/e2e/features/conditional_blocks.feature`, `tests/property/test_processing_properties.py`)
-- [ ] Handle multiline answers (questions 15–17) by reading the paragraph following the prompt. (`tests/e2e/features/multiline_answers.feature`, `tests/property/test_processing_properties.py`)
-- [ ] Support configurable placeholder schema loaded from YAML or JSON. (`tests/e2e/features/configurable_schema.feature`, `tests/property/test_processing_properties.py`)
-
-## Epic 4: Testing & CI
-- [ ] Add unit tests for extraction, conditional logic, and header/footer replacement.
-- [ ] Add tests verifying the package can be imported and used programmatically.
-- [ ] Achieve ≥70 % coverage with pytest and integrate Ruff, Black, MyPy, Bandit, and Semgrep via pre-commit.
-- [ ] Provide a GitHub Actions workflow implementing the multi-agent process.
-
-## Epic 5: Documentation
-- [ ] Expand `README.md` with installation steps, quick-start usage, and contribution guidelines. (`tests/e2e/features/readme_expansion.feature`)
-
-## Epic 6: REST API
-- [ ] Create FastAPI app with `/generate` endpoint accepting template and worksheet uploads.
-- [ ] Add `/health` endpoint returning `{"status": "ok"}`.
-- [ ] Write tests using `TestClient` covering both endpoints.
+| id | title | status | priority | estimate | acceptance_criteria | labels |
+|----|-------|--------|----------|----------|--------------------|--------|
+| T-001 | Restructure repository using `src/` layout and Poetry | DONE | | | `src/faa_sc_replacer/__init__.py` exists | area/setup type/chore |
+| T-002 | Initialize Poetry with dependencies and lock file | DONE | | | `pyproject.toml` and `poetry.lock` present | area/setup type/chore |
+| T-003 | Remove Gradio and Streamlit references | DONE | | | No mentions in repo | area/docs type/chore |
+| T-004 | Implement argparse CLI for `--template` and `--worksheet` | DONE | | | `cli.py` argument parser | area/cli type/feat |
+| T-005 | Add `--dry-run` flag printing JSON diff | DONE | | | `cli.py` diff output | area/cli type/feat |
+| T-006 | Auto-name output when `--output` omitted and print path | DONE | | | `cli.py` generates timestamped name and prints path | area/cli type/feat |
+| T-007 | Validate input files and exit with codes | DONE | | | `io.py` validation and `cli.py` error handling | area/io type/feat |
+| T-008 | Refactor into modular functions | DONE | | | `__init__.py` exposes helpers | area/core type/chore |
+| T-009 | Logging with configurable level and rotation | DONE | | | `cli.py` configures `RotatingFileHandler` | area/logging type/feat |
+| T-010 | Batch mode to process directory of worksheets | DONE | | | `cli.py` `--batch` option | area/cli type/feat |
+| T-011 | Traverse DOCX parts for placeholder replacement | DONE | | | `processing.py` iterates body, tables, headers, footers | area/core type/feat |
+| T-012 | Worksheet #6 conditional blocks support | DONE | | | `processing.py` `apply_conditionals` | area/core type/feat |
+| T-013 | Handle multiline answers for Q15–17 | DONE | | | `processing.py` next paragraph logic | area/core type/feat |
+| T-014 | Configurable placeholder schema via JSON/YAML | OPEN | Should | 4h | CLI accepts `--schema` path loading mappings | area/cli type/feat |
+| T-015 | Unit tests for extraction and conditional logic | DONE | | | `tests/test_processing.py` | area/tests type/feat |
+| T-016 | Test package import | DONE | | | `tests/test_import.py` | area/tests type/feat |
+| T-017 | Coverage ≥70% with linting pre-commit hooks | OPEN | Must | 3h | `pytest --cov` ≥70% and hooks run on commit | area/ci type/chore |
+| T-018 | Enable GitHub Actions multi-agent workflow | OPEN | Must | 2h | `.github/workflows/agents.yml` active | area/ci type/feat |
+| T-019 | Expand README with usage and contribution guidelines | OPEN | Should | 2h | README shows install, quick start, contribution section | area/docs type/feat |
+| T-020 | Create FastAPI `/generate` endpoint for uploads | OPEN | Must | 5h | POST `/generate` returns generated DOCX path | area/api type/feat |
+| T-021 | Provide `/health` endpoint returning status JSON | OPEN | Must | 1h | GET `/health` → `{"status": "ok"}` | area/api type/feat |
+| T-022 | API tests using `TestClient` | OPEN | Must | 3h | Pytest suite covers both endpoints | area/tests type/feat |
+| T-023 | Simple web UI for upload, preview and download | OPEN | Could | 6h | User can upload files and download result via browser | area/web type/feat |
+| T-024 | Benchmark processing <1 s for 500 KB/1 MB files | OPEN | Could | 4h | Automated perf test under threshold | area/perf type/chore |
+| T-025 | Ensure web UI meets WCAG 2.1 AA guidelines | OPEN | Should | 4h | Keyboard navigation and alt-text verified | area/web type/feat |
