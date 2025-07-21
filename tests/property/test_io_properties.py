@@ -1,5 +1,5 @@
 import typing
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, cast
 from pathlib import Path
 import pytest
 from faa_sc_replacer.io import validate_input_files
@@ -10,16 +10,19 @@ F = TypeVar("F", bound=Callable[..., Any])
 if typing.TYPE_CHECKING:
     from hypothesis import given as given_decorator
     from hypothesis import settings, HealthCheck
+
+    property_mark: Callable[[F], F]
 else:
     hypothesis = pytest.importorskip("hypothesis")
-    given_decorator: Callable[[F], F] = typing.cast(Callable[[F], F], hypothesis.given)
+    given_decorator = cast(Callable[[F], F], hypothesis.given)
     settings = hypothesis.settings
     HealthCheck = hypothesis.HealthCheck
+    property_mark = cast(Callable[[F], F], pytest.mark.property)
 
 
-@pytest.mark.property
-@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
-@typing.cast(Any, given_decorator)(template=docx_path(), worksheet=docx_path())  # type: ignore[misc]
+@property_mark
+@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))  # type: ignore[misc]
+@given_decorator(template=docx_path(), worksheet=docx_path())  # type: ignore[misc]
 def test_validate_input_files_accepts_paths(
     tmp_path: Path, template: Path, worksheet: Path
 ) -> None:
