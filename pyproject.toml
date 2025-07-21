@@ -33,7 +33,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-exclude = ["tests*", ".dev*"]
+exclude = ["tests*", ".dev*", "ADR*", "manifests*", "migrations*"]
 
 [tool.mypy]
 packages = ["faa_sc_replacer"]
