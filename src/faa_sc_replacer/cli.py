@@ -13,6 +13,7 @@ from pathlib import Path
 
 from . import processing
 from .io import load_document, save_document, validate_input_files
+from .validation import validate_mandatory_fields
 
 
 class ErrorCode(IntEnum):
@@ -76,6 +77,7 @@ def main(argv: list[str] | None = None) -> None:
                 validate_input_files(template, worksheet)
                 template_doc = load_document(template)
                 worksheet_doc = load_document(worksheet)
+                validate_mandatory_fields(worksheet_doc)
 
                 values = processing.extract_fields(worksheet_doc)
                 processing.replace_placeholders(template_doc, values)
@@ -98,6 +100,7 @@ def main(argv: list[str] | None = None) -> None:
 
             template_doc = load_document(template)
             worksheet_doc = load_document(worksheet)
+            validate_mandatory_fields(worksheet_doc)
 
             values = processing.extract_fields(worksheet_doc)
             processing.replace_placeholders(template_doc, values)

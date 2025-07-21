@@ -45,3 +45,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["docx", "docx.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["fastapi", "fastapi.*"]
+ignore_missing_imports = true

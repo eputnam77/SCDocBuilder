@@ -9,10 +9,17 @@ def test_fill_template_writes_output(tmp_path: Path) -> None:
     worksheet = tmp_path / "w.docx"
 
     doc = Document()
-    doc.add_paragraph("{Applicant name}")
+    doc.add_paragraph("{Applicant name} {Airplane model}")
     doc.save(str(template))
     ws_doc = Document()
     ws_doc.add_paragraph("Applicant name: Foo")
+    ws_doc.add_paragraph("Airplane model: Bar")
+    ws_doc.add_paragraph("Question 15:")
+    ws_doc.add_paragraph("Ans15")
+    ws_doc.add_paragraph("Question 16:")
+    ws_doc.add_paragraph("Ans16")
+    ws_doc.add_paragraph("Question 17:")
+    ws_doc.add_paragraph("Ans17")
     ws_doc.save(str(worksheet))
 
     output = tmp_path / "out.docx"
