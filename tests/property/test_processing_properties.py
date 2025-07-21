@@ -1,14 +1,13 @@
-import pytest
-
-pytest.importorskip("hypothesis")
-
 from pathlib import Path
 
+import pytest
 from faa_sc_replacer.processing import (
     extract_fields,
     replace_placeholders,
     apply_conditionals,
 )
+
+pytest.importorskip("hypothesis")
 
 
 @pytest.mark.property

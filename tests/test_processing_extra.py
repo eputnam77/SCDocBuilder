@@ -17,7 +17,7 @@ def _patch_iter_textbox(monkeypatch: Any, text: str) -> None:
     monkeypatch.setattr(processing, "_iter_textbox_paragraphs", lambda part: [para])
 
 
-def _patch_textbox(monkeypatch: Any, doc: Document, text: str) -> None:
+def _patch_textbox(monkeypatch: Any, doc: Any, text: str) -> None:
     # Only used for testing _iter_textbox_paragraphs itself
     para = Document().add_paragraph(text)
     p_el = para._p
