@@ -154,3 +154,51 @@ def test_logging_rotation_configured(tmp_path: Path, monkeypatch: Any) -> None:
         for h in handlers
     )
     logging.getLogger().handlers.clear()
+
+
+def test_main_dry_run(tmp_path: Path, capsys: Any) -> None:
+    template = tmp_path / "t.docx"
+    worksheet = tmp_path / "w.docx"
+    doc = Document()
+    doc.add_paragraph("{Applicant name}")
+    doc.save(str(template))
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.save(str(worksheet))
+
+    main(
+        [
+            "--template",
+            str(template),
+            "--worksheet",
+            str(worksheet),
+            "--dry-run",
+        ]
+    )
+
+    out = capsys.readouterr().out
+    assert '"new": "Foo"' in out
+
+
+def test_main_batch_dry_run(tmp_path: Path, capsys: Any) -> None:
+    template = tmp_path / "t.docx"
+    Document().save(str(template))
+    batch = tmp_path / "b"
+    batch.mkdir()
+    for i in range(2):
+        ws = Document()
+        ws.add_paragraph("Applicant name: Foo")
+        ws.save(str(batch / f"w{i}.docx"))
+
+    main(
+        [
+            "--template",
+            str(template),
+            "--batch",
+            str(batch),
+            "--dry-run",
+        ]
+    )
+
+    out = capsys.readouterr().out
+    assert '"new": "Foo"' in out
