@@ -1,8 +1,8 @@
 # Test Results
 
-- **Lock check**: `poetry check --lock` succeeded but `pip-compile --dry-run` failed because `pip-compile` is not installed (no internet access).
+- **Lock check**: `poetry check --lock` succeeded but `pip-compile --dry-run` failed (command not found).
 - **Type checking**: `mypy` reported no issues.
-- **Tests**: all tests passed (`18 passed`) with coverage **87%**.
-- **Coverage HTML**: generated and zipped into `coverage-html.zip` but `gh` CLI not installed so artifact upload skipped.
+- **Tests**: failed during collection due to missing dependency `docx`; coverage not generated.
+- **Coverage HTML**: not generated; `gh` CLI not found so artifact upload skipped.
 
-No code issues detected.
+Test suite failed; see logs. 
