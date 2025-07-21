@@ -9,12 +9,16 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 if typing.TYPE_CHECKING:
     from hypothesis import given as given_decorator
+    from hypothesis import settings, HealthCheck
 else:
     hypothesis = pytest.importorskip("hypothesis")
     given_decorator: Callable[[F], F] = typing.cast(Callable[[F], F], hypothesis.given)
+    settings = hypothesis.settings
+    HealthCheck = hypothesis.HealthCheck
 
 
 @pytest.mark.property
+@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
 @typing.cast(Any, given_decorator)(template=docx_path(), worksheet=docx_path())  # type: ignore[misc]
 def test_validate_input_files_accepts_paths(
     tmp_path: Path, template: Path, worksheet: Path
