@@ -274,3 +274,36 @@ def test_main_with_schema(tmp_path: Path, capsys: Any) -> None:
     assert out_path.exists()
     processed = Document(str(out_path))
     assert "Bar" in processed.paragraphs[0].text
+
+
+def test_main_html_out(tmp_path: Path) -> None:
+    template = tmp_path / "t.docx"
+    doc = Document()
+    doc.add_paragraph("{Applicant name}")
+    doc.save(str(template))
+    worksheet = tmp_path / "w.docx"
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.add_paragraph("Airplane model: Bar")
+    ws.add_paragraph("Question 15:")
+    ws.add_paragraph("Ans15")
+    ws.add_paragraph("Question 16:")
+    ws.add_paragraph("Ans16")
+    ws.add_paragraph("Question 17:")
+    ws.add_paragraph("Ans17")
+    ws.save(str(worksheet))
+    html_out = tmp_path / "out.html"
+
+    main(
+        [
+            "--template",
+            str(template),
+            "--worksheet",
+            str(worksheet),
+            "--html-out",
+            str(html_out),
+        ]
+    )
+
+    assert html_out.exists()
+    assert "<p" in html_out.read_text()

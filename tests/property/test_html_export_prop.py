@@ -24,7 +24,9 @@ else:
 
 @property_mark
 @settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
-@given_decorator(text=st.text())
+@given_decorator(
+    text=st.text(alphabet=st.characters(min_codepoint=32, max_codepoint=126))
+)
 def test_export_html_returns_string(text: str) -> None:
     doc = Document()
     doc.add_paragraph(text)

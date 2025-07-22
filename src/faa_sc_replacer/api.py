@@ -9,6 +9,9 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import fill_template
+from .io import load_document
+from .html_export import export_html
+from .security import reject_macros, cleanup_uploads
 
 OUTPUT_DIR = Path(tempfile.gettempdir()) / "faa_sc_outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,18 +46,31 @@ async def web_generate(template: UploadFile, worksheet: UploadFile) -> HTMLRespo
     worksheet_path = OUTPUT_DIR / f"{uuid4().hex}_worksheet.docx"
     template_path.write_bytes(await template.read())
     worksheet_path.write_bytes(await worksheet.read())
+    reject_macros(template_path)
+    reject_macros(worksheet_path)
     output = fill_template(template_path, worksheet_path)
     href = f"/files/{output.name}"
+    cleanup_uploads(template_path, worksheet_path)
     return HTMLResponse(f"<a href='{href}'>Download result</a>")
 
 
 @app.post("/generate")  # type: ignore[misc]
-async def generate(template: UploadFile, worksheet: UploadFile) -> FileResponse:
+async def generate(
+    template: UploadFile, worksheet: UploadFile, html: bool = False
+) -> HTMLResponse | FileResponse:
     template_path = OUTPUT_DIR / f"{uuid4().hex}_template.docx"
     worksheet_path = OUTPUT_DIR / f"{uuid4().hex}_worksheet.docx"
     template_path.write_bytes(await template.read())
     worksheet_path.write_bytes(await worksheet.read())
+    reject_macros(template_path)
+    reject_macros(worksheet_path)
     output = fill_template(template_path, worksheet_path)
+    if html:
+        doc = load_document(output)
+        html_str = export_html(doc)
+        cleanup_uploads(template_path, worksheet_path, output)
+        return HTMLResponse(html_str)
+    cleanup_uploads(template_path, worksheet_path)
     return FileResponse(output, filename=output.name)
 
 
