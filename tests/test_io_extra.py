@@ -1,5 +1,9 @@
 from pathlib import Path
+import typing
 import pytest
+
+if not typing.TYPE_CHECKING:
+    pytest.importorskip("docx")
 from docx import Document
 
 from faa_sc_replacer.io import load_document, save_document

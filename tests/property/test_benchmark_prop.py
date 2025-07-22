@@ -3,9 +3,14 @@ import typing
 from pathlib import Path
 
 import pytest
-from docx import Document
 from tests.property.strategies import docx_path
 from faa_sc_replacer.benchmark import benchmark_processing
+
+if typing.TYPE_CHECKING:
+    from docx import Document
+else:
+    pytest.importorskip("docx")
+    from docx import Document
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -23,7 +28,10 @@ else:
 
 
 @property_mark
-@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
+@settings(
+    suppress_health_check=(HealthCheck.function_scoped_fixture,),
+    deadline=None,
+)
 @given_decorator(template=docx_path(), worksheet=docx_path())
 def test_benchmark_returns_float(
     tmp_path: Path, template: Path, worksheet: Path
