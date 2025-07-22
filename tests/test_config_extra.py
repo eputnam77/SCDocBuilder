@@ -1,7 +1,11 @@
 from typing import Any
 import builtins
 from pathlib import Path
+import typing
 import pytest
+
+if not typing.TYPE_CHECKING:
+    pytest.importorskip("docx")
 
 from faa_sc_replacer import config
 

@@ -1,6 +1,12 @@
 from pathlib import Path
+import typing
 import pytest
-from docx import Document
+
+if typing.TYPE_CHECKING:
+    from docx import Document
+else:
+    pytest.importorskip("docx")
+    from docx import Document
 
 from faa_sc_replacer import fill_template
 

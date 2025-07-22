@@ -1,6 +1,9 @@
 from pathlib import Path
-
+import typing
 import pytest
+
+if not typing.TYPE_CHECKING:
+    pytest.importorskip("docx")
 
 from faa_sc_replacer.security import cleanup_uploads, reject_macros
 

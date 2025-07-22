@@ -1,4 +1,11 @@
-from docx import Document
+import typing
+import pytest
+
+if typing.TYPE_CHECKING:
+    from docx import Document
+else:
+    pytest.importorskip("docx")
+    from docx import Document
 
 from faa_sc_replacer.html_export import export_html
 

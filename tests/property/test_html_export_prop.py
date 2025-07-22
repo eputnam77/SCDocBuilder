@@ -2,7 +2,13 @@ from typing import Any, Callable, TypeVar, cast
 import typing
 
 import pytest
-from docx import Document
+
+if typing.TYPE_CHECKING:
+    from docx import Document
+else:
+    pytest.importorskip("docx")
+    from docx import Document
+
 from faa_sc_replacer.html_export import export_html
 
 F = TypeVar("F", bound=Callable[..., Any])

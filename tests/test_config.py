@@ -1,4 +1,9 @@
 from pathlib import Path
+import typing
+import pytest
+
+if not typing.TYPE_CHECKING:
+    pytest.importorskip("docx")
 
 from faa_sc_replacer.config import load_placeholder_schema
 

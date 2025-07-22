@@ -5,9 +5,15 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 import pytest
+import typing
+
+if typing.TYPE_CHECKING:
+    from docx import Document
+else:
+    pytest.importorskip("docx")
+    from docx import Document
 
 from faa_sc_replacer.cli import ErrorCode, main, parse_args
-from docx import Document
 
 
 def test_parse_args_parses_required() -> None:

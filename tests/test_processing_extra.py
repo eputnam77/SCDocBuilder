@@ -1,7 +1,15 @@
 from typing import Any
 from types import MethodType
-from docx import Document
-from docx.shared import Inches
+import typing
+import pytest
+
+if typing.TYPE_CHECKING:
+    from docx import Document
+    from docx.shared import Inches
+else:
+    pytest.importorskip("docx")
+    from docx import Document
+    from docx.shared import Inches
 
 from faa_sc_replacer import processing
 from faa_sc_replacer.processing import (

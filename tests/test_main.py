@@ -1,5 +1,10 @@
 import runpy
 from typing import Any
+import typing
+import pytest
+
+if not typing.TYPE_CHECKING:
+    pytest.importorskip("docx")
 
 
 def test_module_entrypoint(monkeypatch: Any) -> None:
