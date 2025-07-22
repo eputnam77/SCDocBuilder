@@ -1,12 +1,12 @@
-# FAA Special Condition Template Filler
+# FAA Special Conditions Document Builder
 
-This project automates replacing placeholders in FAA Special Condition notice templates using data from worksheet documents.
+This project automates replacing placeholders in FAA Special Conditions notice templates using data from worksheet documents.
 
 ## Repository layout
 
 ```
 ├── src/                # library code
-│   └── faa_sc_replacer/
+│   └── scdocbuilder/
 ├── tests/              # unit and property tests
 ├── docs/               # documentation for MkDocs
 ├── scripts/            # helper scripts used in CI
@@ -30,7 +30,7 @@ pre-commit install
 Run the CLI with:
 
 ```bash
-python -m faa_sc_replacer --help
+python -m scdocbuilder --help
 ```
 
 ## Quick start
@@ -38,7 +38,7 @@ python -m faa_sc_replacer --help
 Generate a document from the command line:
 
 ```bash
-python -m faa_sc_replacer \
+python -m scdocbuilder \
   --template template.docx \
   --worksheet worksheet.docx \
   --schema schema.json
