@@ -10,6 +10,9 @@ from .io import load_document, save_document, validate_input_files
 from .processing import apply_conditionals, extract_fields, replace_placeholders
 from .validation import validate_mandatory_fields
 from .config import load_placeholder_schema
+from .benchmark import benchmark_processing
+from .html_export import export_html
+from .security import reject_macros, cleanup_uploads
 
 __all__ = [
     "fill_template",
@@ -21,6 +24,10 @@ __all__ = [
     "validate_input_files",
     "validate_mandatory_fields",
     "load_placeholder_schema",
+    "benchmark_processing",
+    "export_html",
+    "reject_macros",
+    "cleanup_uploads",
 ]
 
 

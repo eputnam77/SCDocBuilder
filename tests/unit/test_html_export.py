@@ -1,0 +1,12 @@
+from docx import Document
+
+from faa_sc_replacer.html_export import export_html
+
+
+def test_export_html_returns_string() -> None:
+    doc = Document()
+    doc.add_paragraph("Hello")
+
+    html = export_html(doc)
+
+    assert "<p" in html
