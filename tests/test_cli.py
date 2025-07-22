@@ -237,3 +237,40 @@ def test_main_batch_dry_run(tmp_path: Path, capsys: Any) -> None:
 
     out = capsys.readouterr().out
     assert '"new": "Foo"' in out
+
+
+def test_main_with_schema(tmp_path: Path, capsys: Any) -> None:
+    template = tmp_path / "t.docx"
+    doc = Document()
+    doc.add_paragraph("{Applicant name} {X}")
+    doc.save(str(template))
+    worksheet = tmp_path / "w.docx"
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.add_paragraph("Airplane model: Baz")
+    ws.add_paragraph("X: Bar")
+    ws.add_paragraph("Question 15:")
+    ws.add_paragraph("Ans15")
+    ws.add_paragraph("Question 16:")
+    ws.add_paragraph("Ans16")
+    ws.add_paragraph("Question 17:")
+    ws.add_paragraph("Ans17")
+    ws.save(str(worksheet))
+    schema = tmp_path / "schema.json"
+    schema.write_text('{"X:": "{X}"}')
+
+    main(
+        [
+            "--template",
+            str(template),
+            "--worksheet",
+            str(worksheet),
+            "--schema",
+            str(schema),
+        ]
+    )
+
+    out_path = Path(capsys.readouterr().out.strip())
+    assert out_path.exists()
+    processed = Document(str(out_path))
+    assert "Bar" in processed.paragraphs[0].text

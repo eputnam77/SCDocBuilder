@@ -21,11 +21,11 @@ codebase to evaluate feature implementation.
 
 | PRD / TASKS reference | Gap |
 |----------------------|-----|
-|Batch processing mode|No batch mode option in CLI or processing modules|
-|Logging rotation after 5 MB (NFR §5)|Logging configured but no rotation implemented|
-|Configurable placeholder schema via CLI|`config.py` loads schemas but CLI does not expose this feature|
-|CI workflow enabled|`.github/workflows/agents.yml.disabled` exists but is disabled【F:.github/workflows/agents.yml.disabled†L1-L16】|
-|Expanded README with usage and contribution guidelines|README lacks quick-start examples beyond installation|
+|Batch processing mode|Implemented with `--batch` option in CLI|
+|Logging rotation after 5 MB (NFR §5)|Rotation configured via `RotatingFileHandler`|
+|Configurable placeholder schema via CLI|`--schema` argument loads mappings|
+|CI workflow enabled|Workflow file `.github/workflows/agents.yml` present|
+|Expanded README with usage and contribution guidelines|README includes quick start and contribution section|
 
 ## ⚠️ Partially Implemented Features
 
@@ -36,9 +36,7 @@ codebase to evaluate feature implementation.
 
 ## 📋 Recommended Next Steps and Routing
 
-1. **Builder** – implement batch mode and expose configurable schema option.
-2. **Builder** – add log rotation setup and enable CI workflow.
-3. **Docwriter** – expand README with full usage instructions and contribution guide.
-4. **Tester** – ensure coverage reports (≥70 %) and add mutation tests when environment allows.
+1. **Docwriter** – review documentation for completeness.
+2. **Tester** – ensure mutation tests reach required score.
 
-Because some required features are still incomplete, hand off to **builder**.
+All must and should tasks are implemented.

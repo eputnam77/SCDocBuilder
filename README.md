@@ -32,3 +32,20 @@ Run the CLI with:
 ```bash
 python -m faa_sc_replacer --help
 ```
+
+## Quick start
+
+Generate a document from the command line:
+
+```bash
+python -m faa_sc_replacer \
+  --template template.docx \
+  --worksheet worksheet.docx \
+  --schema schema.json
+```
+
+## Contributing
+
+1. Install dev dependencies with `poetry install --with dev`.
+2. Run `pre-commit` before committing to lint and format code.
+3. Ensure tests pass with `pytest -q`.
