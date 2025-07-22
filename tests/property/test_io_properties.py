@@ -21,8 +21,8 @@ else:
 
 
 @property_mark
-@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
-@given_decorator(template=docx_path(), worksheet=docx_path())
+@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))  # type: ignore[misc]
+@given_decorator(template=docx_path(), worksheet=docx_path())  # type: ignore[misc]
 def test_validate_input_files_accepts_paths(
     tmp_path: Path, template: Path, worksheet: Path
 ) -> None:
