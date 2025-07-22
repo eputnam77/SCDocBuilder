@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict
-
 from docx.document import Document
 from docx.text.paragraph import Paragraph
+
+from typing import Any, Dict
+
+# Precompile regex used for conditional blocks once at module import
+OPTION_PATTERN = re.compile(r"\[\[OPTION_(\d)\]\](.*?)\[\[/OPTION_\1\]\]", re.DOTALL)
 
 
 def _iter_textbox_paragraphs(part: Any) -> list[Paragraph]:
@@ -108,8 +111,6 @@ def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
     if not active:
         return
 
-    pattern = re.compile(r"\[\[OPTION_(\d)\]\](.*?)\[\[/OPTION_\1\]\]", re.DOTALL)
-
     def process_paragraph(paragraph: Paragraph) -> None:
         full_text = "".join(run.text for run in paragraph.runs)
         if "[[OPTION_" not in full_text:
@@ -119,7 +120,7 @@ def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
             option, content = match.group(1), match.group(2)
             return content if option == active else ""
 
-        new_text = re.sub(pattern, repl, full_text)
+        new_text = re.sub(OPTION_PATTERN, repl, full_text)
         if new_text != full_text:
             _set_paragraph_text(paragraph, new_text)
 
