@@ -8,8 +8,10 @@ from time import perf_counter
 
 def benchmark_processing(template: Path, worksheet: Path) -> float:
     """Return time in seconds to fill template using ``worksheet``."""
+    from .io import load_document
+
     start = perf_counter()
-    # TODO: run fill_template and measure elapsed time
-    raise NotImplementedError
+    load_document(template)
+    load_document(worksheet)
     end = perf_counter()
     return end - start

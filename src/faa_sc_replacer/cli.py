@@ -44,6 +44,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--dry-run", action="store_true", help="Print JSON diff without saving"
     )
+    parser.add_argument("--html-out", help="Save sanitized HTML to this path")
     parser.add_argument(
         "--log-level",
         default="INFO",
@@ -125,6 +126,11 @@ def main(argv: list[str] | None = None) -> None:
             else:
                 save_document(template_doc, output)
                 print(str(output))
+                if args.html_out:
+                    from .html_export import export_html
+
+                    html = export_html(template_doc)
+                    Path(args.html_out).write_text(html, encoding="utf-8")
     except FileNotFoundError as exc:
         logging.error(str(exc))
         sys.exit(ErrorCode.ENOFILE)

@@ -51,3 +51,26 @@ def test_generate_endpoint_returns_doc(tmp_path: Path) -> None:
         )
     assert resp.status_code == 200
     assert resp.content.startswith(b"PK")
+
+
+def test_generate_endpoint_returns_html(tmp_path: Path) -> None:
+    template, worksheet = _make_docs(tmp_path)
+    client = TestClient(app)
+    with template.open("rb") as t, worksheet.open("rb") as w:
+        resp = client.post(
+            "/generate?html=true",
+            files={
+                "template": (
+                    "t.docx",
+                    t,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ),
+                "worksheet": (
+                    "w.docx",
+                    w,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ),
+            },
+        )
+    assert resp.status_code == 200
+    assert "<p" in resp.text

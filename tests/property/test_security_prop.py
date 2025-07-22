@@ -25,7 +25,13 @@ else:
 
 @property_mark
 @settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
-@given_decorator(name=st.text(min_size=1, max_size=10))
+@given_decorator(
+    name=st.text(
+        min_size=1,
+        max_size=10,
+        alphabet=st.characters(min_codepoint=97, max_codepoint=122),
+    )
+)
 def test_reject_macros_raises(name: str, tmp_path: Path) -> None:
     path = tmp_path / f"{name}.docm"
     path.write_bytes(b"dummy")

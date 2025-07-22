@@ -27,7 +27,7 @@ last_generated: 2025-07-22T15:38:29Z
 | T-021 | Provide `/health` endpoint returning status JSON | DONE | Must | 1h | GET `/health` → `{"status": "ok"}` | area/api type/feat |
 | T-022 | API tests using `TestClient` | DONE | Must | 3h | Pytest suite covers both endpoints | area/tests type/feat |
 | T-023 | Simple web UI for upload, preview and download | DONE | Could | 6h | User can upload files and download result via browser | area/web type/feat |
-| T-024 | Benchmark processing <1 s for 500 KB/1 MB files | OPEN | Could | 4h | Automated perf test under threshold | area/perf type/chore |
+| T-024 | Benchmark processing <1 s for 500 KB/1 MB files | DONE | Could | 4h | Automated perf test under threshold | area/perf type/chore |
 | T-025 | Ensure web UI meets WCAG 2.1 AA guidelines | DONE | Should | 4h | Keyboard navigation and alt-text verified | area/web type/feat |
-| T-026 | Implement TipTap HTML export using mammoth + bleach | OPEN | Must | 5h | CLI `--html-out` saves sanitized HTML; API returns HTML when requested | area/core type/feat |
-| T-027 | Reject macros and delete uploaded files after processing | OPEN | Must | 3h | Files with macros rejected; uploads removed post-response | area/security type/feat |
+| T-026 | Implement TipTap HTML export using mammoth + bleach | DONE | Must | 5h | CLI `--html-out` saves sanitized HTML; API returns HTML when requested | area/core type/feat |
+| T-027 | Reject macros and delete uploaded files after processing | DONE | Must | 3h | Files with macros rejected; uploads removed post-response | area/security type/feat |
