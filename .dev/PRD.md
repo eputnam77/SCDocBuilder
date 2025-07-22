@@ -36,9 +36,7 @@ Rule‑writers in the FAA Aircraft Certification Service must turn a *Special‑
 |F‑2|Extract field values by scanning paragraphs *and* tables of the worksheet (already implemented).|
 |F‑3|Replace placeholders in all runs inside paragraphs, tables, headers, footers, textboxes, and numbered list items without losing formatting. (<https://python-docx.readthedocs.io/en/latest/user/text.html>) citeturn0search8|
 |F‑4|Handle multiline answers for questions 15–17 by reading **the line immediately following** the question prompt (regex or table row).|
-|F‑5|Implement new conditional block for Worksheet #6 (“Action prompting special conditions”) using four numbered choices: 1 TC, 2 Amended TC, 3 Change, 4 STC.  
- • Placeholder text pattern: `[[OPTION_1]]…[[/OPTION_1]]`, etc.  
- • Rule: include exactly **one** option (matching the worksheet digit); delete the other three entirely.|
+|F‑5|Implement new conditional block for Worksheet #6 (“Action prompting special conditions”) using four numbered choices: 1 TC, 2 Amended TC, 3 Change, 4 STC. • Placeholder text pattern: `[[OPTION_1]]…[[/OPTION_1]]`, etc. • Rule: include exactly **one** option (matching the worksheet digit); delete the other three entirely.|
 |F‑6|Generate output filename `{template‑stem}_{timestamp}.docx` when `--output` is omitted.|
 |F‑7|Return the full path in CLI **stdout** and provide a download link in the web UI|
 |F‑8|Exit code 0 on success; non‑zero on handled error categories (`ENOFILE`, `EVALID`, `EREPLACE`).|
