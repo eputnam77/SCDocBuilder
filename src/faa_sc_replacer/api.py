@@ -22,13 +22,17 @@ app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
 def index() -> HTMLResponse:
     return HTMLResponse(
         """
-        <html><body>
+        <html lang='en'>
+        <body>
         <form action='/web-generate' method='post' enctype='multipart/form-data'>
-            Template: <input type='file' name='template'><br>
-            Worksheet: <input type='file' name='worksheet'><br>
+            <label for='template'>Template:</label>
+            <input id='template' type='file' name='template' aria-label='Template DOCX'><br>
+            <label for='worksheet'>Worksheet:</label>
+            <input id='worksheet' type='file' name='worksheet' aria-label='Worksheet DOCX'><br>
             <button type='submit'>Generate</button>
         </form>
-        </body></html>
+        </body>
+        </html>
         """
     )
 

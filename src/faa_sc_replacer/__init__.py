@@ -9,6 +9,7 @@ from typing import Optional
 from .io import load_document, save_document, validate_input_files
 from .processing import apply_conditionals, extract_fields, replace_placeholders
 from .validation import validate_mandatory_fields
+from .config import load_placeholder_schema
 
 __all__ = [
     "fill_template",
@@ -19,6 +20,7 @@ __all__ = [
     "save_document",
     "validate_input_files",
     "validate_mandatory_fields",
+    "load_placeholder_schema",
 ]
 
 
@@ -26,6 +28,7 @@ def fill_template(
     template_path: Path | str,
     worksheet_path: Path | str,
     output_path: Optional[Path | str] = None,
+    schema: Optional[dict[str, str]] = None,
 ) -> Path:
     """Fill ``template_path`` with values from ``worksheet_path``.
 
@@ -41,7 +44,7 @@ def fill_template(
     worksheet_doc = load_document(worksheet)
     validate_mandatory_fields(worksheet_doc)
 
-    values = extract_fields(worksheet_doc)
+    values = extract_fields(worksheet_doc, schema)
     replace_placeholders(template_doc, values)
     apply_conditionals(template_doc, values)
 

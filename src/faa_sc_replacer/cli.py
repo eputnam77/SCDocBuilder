@@ -14,6 +14,7 @@ from pathlib import Path
 from . import processing
 from .io import load_document, save_document, validate_input_files
 from .validation import validate_mandatory_fields
+from .config import load_placeholder_schema
 
 
 class ErrorCode(IntEnum):
@@ -37,6 +38,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Directory containing worksheet .docx files",
     )
     parser.add_argument("--output", help="Output path for processed document")
+    parser.add_argument(
+        "--schema", help="Path to placeholder schema JSON or YAML", default=None
+    )
     parser.add_argument(
         "--dry-run", action="store_true", help="Print JSON diff without saving"
     )
@@ -65,6 +69,7 @@ def main(argv: list[str] | None = None) -> None:
         force=True,
     )
     template = Path(args.template)
+    schema = load_placeholder_schema(Path(args.schema)) if args.schema else None
 
     try:
         if args.batch:
@@ -79,7 +84,7 @@ def main(argv: list[str] | None = None) -> None:
                 worksheet_doc = load_document(worksheet)
                 validate_mandatory_fields(worksheet_doc)
 
-                values = processing.extract_fields(worksheet_doc)
+                values = processing.extract_fields(worksheet_doc, schema)
                 processing.replace_placeholders(template_doc, values)
                 processing.apply_conditionals(template_doc, values)
 
@@ -102,7 +107,7 @@ def main(argv: list[str] | None = None) -> None:
             worksheet_doc = load_document(worksheet)
             validate_mandatory_fields(worksheet_doc)
 
-            values = processing.extract_fields(worksheet_doc)
+            values = processing.extract_fields(worksheet_doc, schema)
             processing.replace_placeholders(template_doc, values)
             processing.apply_conditionals(template_doc, values)
 

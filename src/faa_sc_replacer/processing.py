@@ -30,19 +30,25 @@ def _set_paragraph_text(paragraph: Paragraph, text: str) -> None:
         paragraph.add_run(text)
 
 
-def extract_fields(doc: Document) -> Dict[str, str]:
-    """Extract placeholder values from a worksheet document."""
+def extract_fields(
+    doc: Document, field_mappings: Dict[str, str] | None = None
+) -> Dict[str, str]:
+    """Extract placeholder values from a worksheet document.
 
-    field_mappings = {
-        "Applicant name:": "{Applicant name}",
-        "Airplane manufacturer:": "{Airplane manufacturer}",
-        "Airplane model:": "{Airplane model}",
-        "Subject of special conditions:": "{Subject of special conditions}",
-        "Date of application:": "{Date of application}",
-        "Type of airplane:": "{Type of airplane}",
-        "TC number": "{TC number}",
-        "Action prompting special conditions:": "{Action option}",
-    }
+    ``field_mappings`` allows loading custom schemas from configuration files.
+    """
+
+    if field_mappings is None:
+        field_mappings = {
+            "Applicant name:": "{Applicant name}",
+            "Airplane manufacturer:": "{Airplane manufacturer}",
+            "Airplane model:": "{Airplane model}",
+            "Subject of special conditions:": "{Subject of special conditions}",
+            "Date of application:": "{Date of application}",
+            "Type of airplane:": "{Type of airplane}",
+            "TC number": "{TC number}",
+            "Action prompting special conditions:": "{Action option}",
+        }
 
     results: Dict[str, str] = {}
 
