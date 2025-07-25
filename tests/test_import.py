@@ -7,6 +7,6 @@ if not typing.TYPE_CHECKING:
 
 def test_package_importable() -> None:
     """The package should be importable."""
-    import faa_sc_replacer
+    import scdocbuilder
 
-    assert hasattr(faa_sc_replacer, "fill_template")
+    assert hasattr(scdocbuilder, "fill_template")

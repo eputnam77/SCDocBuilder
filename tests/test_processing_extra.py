@@ -11,8 +11,8 @@ else:
     from docx import Document
     from docx.shared import Inches
 
-from faa_sc_replacer import processing
-from faa_sc_replacer.processing import (
+from scdocbuilder import processing
+from scdocbuilder.processing import (
     _iter_textbox_paragraphs,
     _set_paragraph_text,
     replace_placeholders,

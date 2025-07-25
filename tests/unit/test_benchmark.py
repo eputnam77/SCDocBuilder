@@ -8,7 +8,7 @@ else:
     pytest.importorskip("docx")
     from docx import Document
 
-from faa_sc_replacer.benchmark import benchmark_processing
+from scdocbuilder.benchmark import benchmark_processing
 
 
 def test_benchmark_under_one_second(tmp_path: Path) -> None:

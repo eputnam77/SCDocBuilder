@@ -6,7 +6,7 @@ import pytest
 if not typing.TYPE_CHECKING:
     pytest.importorskip("docx")
 
-from faa_sc_replacer.io import validate_input_files
+from scdocbuilder.io import validate_input_files
 from tests.property.strategies import docx_path
 
 F = TypeVar("F", bound=Callable[..., Any])

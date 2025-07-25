@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from tests.property.strategies import docx_path
-from faa_sc_replacer.benchmark import benchmark_processing
+from scdocbuilder.benchmark import benchmark_processing
 
 if typing.TYPE_CHECKING:
     from docx import Document

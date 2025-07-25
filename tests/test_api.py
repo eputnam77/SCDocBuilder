@@ -8,7 +8,7 @@ else:
     pytest.importorskip("docx")
     from docx import Document
 
-from faa_sc_replacer import fill_template
+from scdocbuilder import fill_template
 
 
 def test_fill_template_writes_output(tmp_path: Path) -> None:

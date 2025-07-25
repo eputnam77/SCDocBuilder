@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from tests.property.strategies import docx_path
-from faa_sc_replacer.security import reject_macros, cleanup_uploads
+from scdocbuilder.security import reject_macros, cleanup_uploads
 
 F = TypeVar("F", bound=Callable[..., Any])
 

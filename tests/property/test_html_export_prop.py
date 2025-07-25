@@ -9,7 +9,7 @@ else:
     pytest.importorskip("docx")
     from docx import Document
 
-from faa_sc_replacer.html_export import export_html
+from scdocbuilder.html_export import export_html
 
 F = TypeVar("F", bound=Callable[..., Any])
 

@@ -5,7 +5,7 @@ import pytest
 if not typing.TYPE_CHECKING:
     pytest.importorskip("docx")
 
-from faa_sc_replacer.config import load_placeholder_schema
+from scdocbuilder.config import load_placeholder_schema
 
 
 def test_load_placeholder_schema(tmp_path: Path) -> None:

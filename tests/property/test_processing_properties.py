@@ -6,7 +6,7 @@ import pytest
 if not typing.TYPE_CHECKING:
     pytest.importorskip("docx")
 
-from faa_sc_replacer.processing import (
+from scdocbuilder.processing import (
     extract_fields,
     replace_placeholders,
     apply_conditionals,

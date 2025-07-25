@@ -6,7 +6,7 @@ if not typing.TYPE_CHECKING:
     pytest.importorskip("docx")
 from docx import Document
 
-from faa_sc_replacer.io import load_document, save_document
+from scdocbuilder.io import load_document, save_document
 
 
 def test_load_document_and_save(tmp_path: Path) -> None:

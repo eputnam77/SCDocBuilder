@@ -7,7 +7,7 @@ else:
     pytest.importorskip("docx")
     from docx import Document
 
-from faa_sc_replacer.html_export import export_html
+from scdocbuilder.html_export import export_html
 
 
 def test_export_html_returns_string() -> None:
