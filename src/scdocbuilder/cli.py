@@ -61,7 +61,7 @@ def main(argv: list[str] | None = None) -> None:
     handlers: list[logging.Handler] = [
         logging.StreamHandler(),
         RotatingFileHandler(
-            "faa_sc_replacer.log", maxBytes=5 * 1024 * 1024, backupCount=2
+            "scdocbuilder.log", maxBytes=5 * 1024 * 1024, backupCount=2
         ),
     ]
     logging.basicConfig(

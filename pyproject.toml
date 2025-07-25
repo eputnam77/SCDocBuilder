@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "faa-sc-replacer"
+name = "scdocbuilder"
 version = "0.1.0"
 description = "Utility to fill FAA Special Conditions templates from worksheets"
 authors = ["FAA Automation Team <dev@example.com>"]
 readme = "README.md"
-packages = [{include = "faa_sc_replacer", from = "src"}]
+packages = [{include = "scdocbuilder", from = "src"}]
 
 [tool.poetry.scripts]
-faa-sc-replacer = "faa_sc_replacer.cli:main"
+scdocbuilder = "scdocbuilder.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -36,7 +36,7 @@ where = ["src"]
 exclude = ["tests*", ".dev*", "ADR*", "manifests*", "migrations*"]
 
 [tool.mypy]
-packages = ["faa_sc_replacer"]
+packages = ["scdocbuilder"]
 
 [[tool.mypy.overrides]]
 module = "hypothesis.*"

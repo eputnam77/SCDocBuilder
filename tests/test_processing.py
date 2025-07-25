@@ -8,7 +8,7 @@ else:
     pytest.importorskip("docx")
     from docx import Document
 
-from faa_sc_replacer.processing import (
+from scdocbuilder.processing import (
     extract_fields,
     replace_placeholders,
     apply_conditionals,

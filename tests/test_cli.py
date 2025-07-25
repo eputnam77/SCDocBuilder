@@ -13,7 +13,7 @@ else:
     pytest.importorskip("docx")
     from docx import Document
 
-from faa_sc_replacer.cli import ErrorCode, main, parse_args
+from scdocbuilder.cli import ErrorCode, main, parse_args
 
 
 def test_parse_args_parses_required() -> None:
@@ -74,7 +74,7 @@ def test_main_prints_output_path(tmp_path: Path, capsys: Any, monkeypatch: Any) 
             return fixed_time
 
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("faa_sc_replacer.cli.datetime", FixedDateTime)
+    monkeypatch.setattr("scdocbuilder.cli.datetime", FixedDateTime)
 
     main(
         [
@@ -132,7 +132,7 @@ def test_main_batch_processes_directory(tmp_path: Path, monkeypatch: Any) -> Non
         def now(cls) -> datetime:  # type: ignore[override]
             return fixed_time
 
-    monkeypatch.setattr("faa_sc_replacer.cli.datetime", FixedDateTime)
+    monkeypatch.setattr("scdocbuilder.cli.datetime", FixedDateTime)
     monkeypatch.chdir(tmp_path)
 
     main(

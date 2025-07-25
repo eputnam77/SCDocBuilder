@@ -5,7 +5,7 @@ import pytest
 if not typing.TYPE_CHECKING:
     pytest.importorskip("docx")
 
-from faa_sc_replacer.security import cleanup_uploads, reject_macros
+from scdocbuilder.security import cleanup_uploads, reject_macros
 
 
 def test_reject_macros_raises(tmp_path: Path) -> None:

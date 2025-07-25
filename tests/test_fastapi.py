@@ -13,7 +13,7 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     pytest.skip("fastapi not installed", allow_module_level=True)
 
-from faa_sc_replacer.api import app
+from scdocbuilder.api import app
 
 
 def _make_docs(tmp_path: Path) -> tuple[Path, Path]:
