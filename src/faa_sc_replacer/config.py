@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Dict, Any
+from functools import lru_cache
 
 
+@lru_cache(maxsize=None)
 def load_placeholder_schema(path: Path) -> Dict[str, str]:
     """Load placeholder schema from a JSON or YAML file."""
 
