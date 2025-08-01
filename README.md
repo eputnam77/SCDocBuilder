@@ -143,3 +143,8 @@ python -m scdocbuilder \
 1. Install dev dependencies with `poetry install --with dev`.
 2. Run `pre-commit` before committing to lint and format code.
 3. Ensure tests pass with `pytest -q`.
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0**. See
+the [LICENSE](LICENSE) file for full terms.

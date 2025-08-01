@@ -5,6 +5,7 @@ description = "Utility to fill FAA Special Conditions templates from worksheets"
 authors = ["FAA Automation Team <dev@example.com>"]
 readme = "README.md"
 packages = [{include = "scdocbuilder", from = "src"}]
+license = "GPL-3.0-only"
 
 [tool.poetry.scripts]
 scdocbuilder = "scdocbuilder.cli:main"

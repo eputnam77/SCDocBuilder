@@ -180,3 +180,9 @@ def convert_to_html(doc): ...
 
 Follow single-responsibility functions, exhaustive unit tests, and structured logs for ease of maintenance.
 
+### 15 · License
+
+SCDocBuilder is released under the **GNU General Public License v3.0**. All
+source code and documentation in this repository are distributed under these
+terms.
+
