@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 import logging
 from logging.handlers import RotatingFileHandler
+import json
 
 import pytest
 import typing
@@ -313,3 +314,104 @@ def test_main_html_out(tmp_path: Path) -> None:
 
     assert html_out.exists()
     assert "<p" in html_out.read_text()
+
+
+def test_main_dry_run_outputs_json_and_no_file(
+    tmp_path: Path, capsys: Any, monkeypatch: Any
+) -> None:
+    template = tmp_path / "t.docx"
+    doc = Document()
+    doc.add_paragraph("{Applicant name}")
+    doc.save(str(template))
+    worksheet = tmp_path / "w.docx"
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.add_paragraph("Airplane model: Bar")
+    ws.add_paragraph("Question 15:")
+    ws.add_paragraph("Ans15")
+    ws.add_paragraph("Question 16:")
+    ws.add_paragraph("Ans16")
+    ws.add_paragraph("Question 17:")
+    ws.add_paragraph("Ans17")
+    ws.save(str(worksheet))
+    fixed_time = datetime(2024, 2, 3, 4, 5, 6)
+
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls) -> datetime:  # type: ignore[override]
+            return fixed_time
+
+    monkeypatch.setattr("scdocbuilder.cli.datetime", FixedDateTime)
+    monkeypatch.chdir(tmp_path)
+
+    main(
+        [
+            "--template",
+            str(template),
+            "--worksheet",
+            str(worksheet),
+            "--dry-run",
+        ]
+    )
+
+    out = capsys.readouterr().out
+    diff = json.loads(out)
+    assert diff["{Applicant name}"]["new"] == "Foo"
+    expected = tmp_path / f"t_{fixed_time:%Y%m%d_%H%M%S}.docx"
+    assert not expected.exists()
+
+
+def test_main_validation_error_exit_code(tmp_path: Path) -> None:
+    template = tmp_path / "t.docx"
+    doc = Document()
+    doc.add_paragraph("{Applicant name}")
+    doc.save(str(template))
+    worksheet = tmp_path / "w.docx"
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.save(str(worksheet))
+
+    with pytest.raises(SystemExit) as exc:
+        main(
+            [
+                "--template",
+                str(template),
+                "--worksheet",
+                str(worksheet),
+            ]
+        )
+    assert exc.value.code == ErrorCode.EVALID
+
+
+def test_main_replacement_failure_exit_code(tmp_path: Path, monkeypatch: Any) -> None:
+    template = tmp_path / "t.docx"
+    worksheet = tmp_path / "w.docx"
+    doc = Document()
+    doc.add_paragraph("{Applicant name}")
+    doc.save(str(template))
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.add_paragraph("Airplane model: Bar")
+    ws.add_paragraph("Question 15:")
+    ws.add_paragraph("Ans15")
+    ws.add_paragraph("Question 16:")
+    ws.add_paragraph("Ans16")
+    ws.add_paragraph("Question 17:")
+    ws.add_paragraph("Ans17")
+    ws.save(str(worksheet))
+
+    def boom(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("scdocbuilder.processing.replace_placeholders", boom)
+
+    with pytest.raises(SystemExit) as exc:
+        main(
+            [
+                "--template",
+                str(template),
+                "--worksheet",
+                str(worksheet),
+            ]
+        )
+    assert exc.value.code == ErrorCode.EREPLACE
