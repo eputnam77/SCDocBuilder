@@ -8,6 +8,17 @@ from docx.text.paragraph import Paragraph
 
 from typing import Any, Dict
 
+DEFAULT_FIELD_MAPPINGS: Dict[str, str] = {
+    "Applicant name:": "{Applicant name}",
+    "Airplane manufacturer:": "{Airplane manufacturer}",
+    "Airplane model:": "{Airplane model}",
+    "Subject of special conditions:": "{Subject of special conditions}",
+    "Date of application:": "{Date of application}",
+    "Type of airplane:": "{Type of airplane}",
+    "TC number": "{TC number}",
+    "Action prompting special conditions:": "{Action option}",
+}
+
 # Precompile regex used for conditional blocks once at module import
 OPTION_PATTERN = re.compile(r"\[\[OPTION_(\d)\]\](.*?)\[\[/OPTION_\1\]\]", re.DOTALL)
 
@@ -39,16 +50,7 @@ def extract_fields(
     """
 
     if field_mappings is None:
-        field_mappings = {
-            "Applicant name:": "{Applicant name}",
-            "Airplane manufacturer:": "{Airplane manufacturer}",
-            "Airplane model:": "{Airplane model}",
-            "Subject of special conditions:": "{Subject of special conditions}",
-            "Date of application:": "{Date of application}",
-            "Type of airplane:": "{Type of airplane}",
-            "TC number": "{TC number}",
-            "Action prompting special conditions:": "{Action option}",
-        }
+        field_mappings = DEFAULT_FIELD_MAPPINGS
 
     results: Dict[str, str] = {}
 
