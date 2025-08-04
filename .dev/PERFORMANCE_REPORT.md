@@ -1,37 +1,19 @@
-# Performance Optimization Report
+# Performance Report
 
-A short profiling run was executed with `cProfile` on the CLI using temporary DOCX files. The run completed in ~0.18s (116k calls) with most time spent inside `python-docx` XML parsing and compression functions.
+## Profiling
+- Attempted to run `cProfile` on the application, but module imports failed due to missing dependencies; profile artifacts are captured in `perf/artifacts/profile.pstats`.
+- k6 API load testing could not be executed because installation failed (403 Forbidden). See `perf/artifacts/k6.txt`.
 
-No API server was running and the project does not use a database or bundle any frontend assets, so k6 testing and bundle size inspection were skipped.
+## Database Queries
+- Searched project sources and found no database interactions; application operates solely on DOCX files.
 
-## Safe to try
+## Bundle Size
+- Source package size: 56K (`src/scdocbuilder`).
 
-### Recommendation: Cache placeholder schema loading
-- Impact: Low (avoids repeated disk reads)
-- Effort: Low
-- Risk: Low
-- Priority: P1
-- ready-for:builder
-
-## Review needed
-
-### Recommendation: Parallelize batch processing
-- Impact: Moderate when many worksheets are processed
-- Effort: Moderate (use `concurrent.futures`)
-- Risk: Moderate (concurrency issues)
-- Priority: P3
-- ready-for:builder
-
-### Recommendation: Stream large DOCX files instead of loading entirely
-- Impact: Moderate (reduced memory usage)
-- Effort: High (requires lower level API)
-- Risk: High
-- Priority: P3
-- ready-for:builder
-
-### Recommendation: Implement profiling CI
-- Impact: Low (visibility into regressions)
-- Effort: Moderate
-- Risk: Low
-- Priority: P2
-- ready-for:builder
+## Recommendations
+| Recommendation | Impact | Effort | Risk | Priority |
+|---|---|---|---|---|
+| Cache default field mappings instead of recreating dict each call (implemented). | Low CPU savings for repeated calls | Low | Low | P1 |
+| Use a combined regex to replace placeholders in single pass to reduce nested loops. | Medium throughput gain on large documents | Medium | Medium | P2 |
+| Run FastAPI with `uvicorn` using multiple workers and `uvloop` in production. | Improved concurrency handling | Low | Low | P1 |
+| Stream generated files instead of writing to disk before response. | Reduced I/O overhead for large documents | High | Medium | P3 |
