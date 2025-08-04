@@ -2,6 +2,10 @@ from typing import Any
 from types import MethodType
 import typing
 import pytest
+import re
+
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
 if typing.TYPE_CHECKING:
     from docx import Document
@@ -124,3 +128,48 @@ def test_replace_placeholders_preserves_newlines() -> None:
     replace_placeholders(doc, {"{P}": "Line1\nLine2"})
     text = doc.paragraphs[0].text
     assert "Line1" in text and "Line2" in text and "\n" in text
+
+
+def test_replace_placeholders_retains_bold_style() -> None:
+    doc = Document()
+    para = doc.add_paragraph()
+    run = para.add_run("{name}")
+    run.bold = True
+    replace_placeholders(doc, {"{name}": "VAL"})
+    assert para.runs[0].text == "VAL"
+    assert para.runs[0].bold is True
+
+
+def test_replace_placeholders_header_preserves_page_field() -> None:
+    doc = Document()
+    hdr = doc.sections[0].header
+    p = hdr.add_paragraph()
+    p.add_run("{x}")
+    field_run = p.add_run()
+    fld = OxmlElement("w:fldSimple")
+    fld.set(qn("w:instr"), "PAGE")
+    field_run._r.append(fld)
+
+    replace_placeholders(doc, {"{x}": "VAL"})
+    assert "VAL" in p.text
+    assert "PAGE" in p._p.xml
+
+
+def test_replace_placeholders_textbox_preserves_formatting(monkeypatch: Any) -> None:
+    doc = Document()
+    para = Document().add_paragraph()
+    run = para.add_run("{x}")
+    run.italic = True
+    monkeypatch.setattr(processing, "_iter_textbox_paragraphs", lambda part: [para])
+    replace_placeholders(doc, {"{x}": "VAL"})
+    para = processing._iter_textbox_paragraphs(doc.part)[0]
+    assert para.runs[0].text == "VAL"
+    assert para.runs[0].italic is True
+
+
+def test_replace_placeholders_no_leftovers() -> None:
+    doc = Document()
+    doc.add_paragraph("{A} {B}")
+    replace_placeholders(doc, {"{A}": "1", "{B}": "2"})
+    text = "\n".join(p.text for p in doc.paragraphs)
+    assert not re.search(r"\{.+?\}", text)
