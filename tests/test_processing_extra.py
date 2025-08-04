@@ -70,6 +70,15 @@ def test_extract_fields_table() -> None:
     assert fields["{Applicant name}"] == "Foo"
 
 
+def test_extract_fields_multiline_answer() -> None:
+    doc = Document()
+    doc.add_paragraph("Question 15:")
+    doc.add_paragraph("Line1")
+    doc.add_paragraph("Line2")
+    fields = processing.extract_fields(doc, {"Question 15:": "{Q15}"})
+    assert fields["{Q15}"] == "Line1\nLine2"
+
+
 def test_replace_placeholders_full(monkeypatch: Any) -> None:
     doc = Document()
     doc.add_paragraph("{x}")
