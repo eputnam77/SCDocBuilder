@@ -87,3 +87,48 @@ def test_health_endpoint_returns_ok() -> None:
     resp = client.get("/health")
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok"}
+
+
+def test_preview_endpoint_returns_html(tmp_path: Path) -> None:
+    template, worksheet = _make_docs(tmp_path)
+    client = TestClient(app)
+    with template.open("rb") as t, worksheet.open("rb") as w:
+        resp = client.post(
+            "/preview",
+            files={
+                "template": (
+                    "t.docx",
+                    t,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ),
+                "worksheet": (
+                    "w.docx",
+                    w,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ),
+            },
+        )
+    assert resp.status_code == 200
+    assert "<p" in resp.text
+
+
+def test_validate_endpoint_returns_422(tmp_path: Path) -> None:
+    template, worksheet = _make_docs(tmp_path)
+    client = TestClient(app)
+    with template.open("rb") as t, worksheet.open("rb") as w:
+        resp = client.post(
+            "/validate",
+            files={
+                "template": (
+                    "t.docx",
+                    t,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ),
+                "worksheet": (
+                    "w.docx",
+                    w,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ),
+            },
+        )
+    assert resp.status_code == 422

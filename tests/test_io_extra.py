@@ -6,7 +6,7 @@ if not typing.TYPE_CHECKING:
     pytest.importorskip("docx")
 from docx import Document
 
-from scdocbuilder.io import load_document, save_document
+from scdocbuilder.io import load_document, save_document, validate_input_files
 
 
 def test_load_document_and_save(tmp_path: Path) -> None:
@@ -19,3 +19,10 @@ def test_load_document_and_save(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError):
         save_document(doc, tmp_path / "bad.txt")
+
+
+def test_validate_input_files_rejects_wrong_mime(tmp_path: Path) -> None:
+    bogus = tmp_path / "fake.docx"
+    bogus.write_text("not a real docx")
+    with pytest.raises(ValueError):
+        validate_input_files(bogus, bogus)
