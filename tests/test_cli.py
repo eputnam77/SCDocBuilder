@@ -4,6 +4,8 @@ from typing import Any
 import logging
 from logging.handlers import RotatingFileHandler
 import json
+import subprocess
+import sys
 
 import pytest
 import typing
@@ -50,6 +52,42 @@ def test_parse_args_parses_batch() -> None:
     assert args.worksheet is None
 
 
+def test_cli_exits_zero_with_required_args(tmp_path: Path) -> None:
+    """Running the CLI with required arguments should exit with code 0."""
+
+    template = tmp_path / "t.docx"
+    worksheet = tmp_path / "w.docx"
+    Document().save(str(template))
+    ws_doc = Document()
+    ws_doc.add_paragraph("Applicant name: Foo")
+    ws_doc.add_paragraph("Airplane model: Bar")
+    ws_doc.add_paragraph("Question 15:")
+    ws_doc.add_paragraph("Ans15")
+    ws_doc.add_paragraph("Question 16:")
+    ws_doc.add_paragraph("Ans16")
+    ws_doc.add_paragraph("Question 17:")
+    ws_doc.add_paragraph("Ans17")
+    ws_doc.save(str(worksheet))
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "scdocbuilder.cli",
+            "--template",
+            str(template),
+            "--worksheet",
+            str(worksheet),
+        ],
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+    )
+    assert result.returncode == 0
+    output_path = Path(result.stdout.strip())
+    assert output_path.exists()
+
+
 def test_main_prints_output_path(tmp_path: Path, capsys: Any, monkeypatch: Any) -> None:
     """CLI should print the absolute output path when no --output is given."""
 
@@ -90,6 +128,40 @@ def test_main_prints_output_path(tmp_path: Path, capsys: Any, monkeypatch: Any) 
     assert expected.exists()
     captured = capsys.readouterr()
     assert captured.out.strip() == str(expected.resolve())
+
+
+def test_main_respects_output_flag(tmp_path: Path, capsys: Any) -> None:
+    """CLI should write to the path provided by --output."""
+
+    template = tmp_path / "t.docx"
+    worksheet = tmp_path / "w.docx"
+    Document().save(str(template))
+    ws_doc = Document()
+    ws_doc.add_paragraph("Applicant name: Foo")
+    ws_doc.add_paragraph("Airplane model: Bar")
+    ws_doc.add_paragraph("Question 15:")
+    ws_doc.add_paragraph("Ans15")
+    ws_doc.add_paragraph("Question 16:")
+    ws_doc.add_paragraph("Ans16")
+    ws_doc.add_paragraph("Question 17:")
+    ws_doc.add_paragraph("Ans17")
+    ws_doc.save(str(worksheet))
+    output = tmp_path / "custom.docx"
+
+    main(
+        [
+            "--template",
+            str(template),
+            "--worksheet",
+            str(worksheet),
+            "--output",
+            str(output),
+        ]
+    )
+
+    assert output.exists()
+    captured = capsys.readouterr()
+    assert captured.out.strip() == str(output.resolve())
 
 
 def test_main_missing_file_exits_with_code(tmp_path: Path) -> None:
