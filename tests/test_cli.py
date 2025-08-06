@@ -428,6 +428,7 @@ def test_main_dry_run_outputs_json_and_no_file(
 
     out = capsys.readouterr().out
     diff = json.loads(out)
+    assert diff["{Applicant name}"]["old"] == "{Applicant name}"
     assert diff["{Applicant name}"]["new"] == "Foo"
     expected = tmp_path / f"t_{fixed_time:%Y%m%d_%H%M%S}.docx"
     assert not expected.exists()
@@ -442,6 +443,24 @@ def test_main_validation_error_exit_code(tmp_path: Path) -> None:
     ws = Document()
     ws.add_paragraph("Applicant name: Foo")
     ws.save(str(worksheet))
+
+    with pytest.raises(SystemExit) as exc:
+        main(
+            [
+                "--template",
+                str(template),
+                "--worksheet",
+                str(worksheet),
+            ]
+        )
+    assert exc.value.code == ErrorCode.EVALID
+
+
+def test_main_wrong_mime_exit_code(tmp_path: Path) -> None:
+    template = tmp_path / "t.docx"
+    Document().save(str(template))
+    worksheet = tmp_path / "w.docx"
+    worksheet.write_text("not a real docx")
 
     with pytest.raises(SystemExit) as exc:
         main(
