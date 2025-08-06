@@ -487,3 +487,15 @@ def test_main_replacement_failure_exit_code(tmp_path: Path, monkeypatch: Any) ->
             ]
         )
     assert exc.value.code == ErrorCode.EREPLACE
+
+
+@pytest.mark.xfail(reason="Auto-completion not yet implemented")
+def test_cli_shows_completion_script() -> None:
+    """CLI should expose completion script via --show-completion."""
+    result = subprocess.run(
+        [sys.executable, "-m", "scdocbuilder.cli", "--show-completion", "bash"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "--template" in result.stdout
