@@ -3,6 +3,7 @@ from types import MethodType
 import typing
 import pytest
 import re
+from pathlib import Path
 
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -120,6 +121,35 @@ def test_apply_conditionals_full(monkeypatch: Any) -> None:
     assert table.cell(0, 0).text == "A"
     assert hdr_para.text == "A"
     assert [p.text for p in processing._iter_textbox_paragraphs(doc.part)] == ["A"]
+
+
+@pytest.mark.parametrize(
+    "choice,expected",
+    [("1", "A"), ("2", "B"), ("3", "C"), ("4", "D")],
+)
+def test_apply_conditionals_golden_diff(
+    tmp_path: Path, choice: str, expected: str
+) -> None:
+    """Applying conditionals should match the expected DOCX output for each option."""
+    doc = Document()
+    doc.add_paragraph(
+        """
+        [[OPTION_1]]A[[/OPTION_1]]
+        [[OPTION_2]]B[[/OPTION_2]]
+        [[OPTION_3]]C[[/OPTION_3]]
+        [[OPTION_4]]D[[/OPTION_4]]
+        """.strip()
+    )
+    processing.apply_conditionals(doc, {"{Action option}": choice})
+    out_path = tmp_path / "out.docx"
+    doc.save(str(out_path))
+
+    expected_doc = Document()
+    expected_doc.add_paragraph(expected)
+    expected_path = tmp_path / "expected.docx"
+    expected_doc.save(str(expected_path))
+
+    assert out_path.read_bytes() == expected_path.read_bytes()
 
 
 def test_replace_placeholders_preserves_newlines() -> None:
