@@ -1,4 +1,6 @@
 from typing import TYPE_CHECKING
+from html.parser import HTMLParser
+
 import pytest
 
 if not TYPE_CHECKING:
@@ -26,3 +28,22 @@ def test_export_html_sanitises_script_and_preserves_formatting() -> None:
     html = export_html(doc)
     assert "<script" not in html.lower()
     assert "<em>Italic</em>" in html
+
+
+def test_export_html_tiptap_ready() -> None:
+    doc = Document()
+    doc.add_paragraph("Hello")
+    html = export_html(doc)
+
+    class Collector(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.tags: set[str] = set()
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:  # type: ignore[override]
+            self.tags.add(tag)
+
+    parser = Collector()
+    parser.feed(html)
+    allowed = {"p", "h1", "h2", "h3", "ul", "ol", "li", "em", "strong", "a"}
+    assert parser.tags <= allowed
