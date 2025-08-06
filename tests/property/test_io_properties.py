@@ -1,5 +1,5 @@
 import typing
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, Callable, TypeVar, cast, no_type_check
 from pathlib import Path
 import pytest
 
@@ -24,6 +24,7 @@ else:
     property_mark = cast(Callable[[F], F], pytest.mark.property)
 
 
+@no_type_check
 @property_mark
 @settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
 @given_decorator(template=docx_path(), worksheet=docx_path())
