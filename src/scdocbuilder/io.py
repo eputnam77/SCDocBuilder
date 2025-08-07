@@ -35,9 +35,9 @@ def validate_input_files(template: Path, worksheet: Path) -> None:
             if head[:2] != b"PK":
                 raise ValueError(f"{file} is not a valid docx file")
             try:
-                import magic  # type: ignore
+                import magic
 
-                mime = magic.from_buffer(head, mime=True)  # type: ignore[attr-defined]
+                mime = magic.from_buffer(head, mime=True)
             except (ImportError, AttributeError):
                 pass
             else:
@@ -48,31 +48,13 @@ def validate_input_files(template: Path, worksheet: Path) -> None:
 def load_document(path: Path) -> Any:
     """Load a Word document from ``path``.
 
-    A tiny text-based format is used for tests. Files produced by
-    :meth:`docx.document.Document.save` are prefixed with ``PK`` followed by
-    newline-delimited content where heading paragraphs are encoded as
-    ``!<level>:text`` and header/footer lines are prefixed with ``H:`` / ``F:``.
+    The file is first validated using :func:`validate_input_files` to ensure it
+    looks like a real DOCX archive. The returned object is the
+    :class:`python-docx` ``Document`` instance loaded from ``path``.
     """
 
-    validate_input_files(path, path)  # reuse checks
-    data = path.read_bytes()[2:]  # strip pseudo magic number
-    doc = Document()
-    for line in data.decode("utf-8").splitlines():
-        if line.startswith("!"):
-            level, text = line[1:].split(":", 1)
-            doc.add_heading(text, level=int(level))
-        elif line.startswith("H:"):
-            doc.sections[0].header.add_paragraph(line[2:])
-        elif line.startswith("F:"):
-            doc.sections[0].footer.add_paragraph(line[2:])
-        elif "|" in line:
-            cells = line.split("|")
-            table = doc.add_table(1, len(cells))
-            for i, cell_text in enumerate(cells):
-                table.cell(0, i).text = cell_text
-        else:
-            doc.add_paragraph(line)
-    return doc
+    validate_input_files(path, path)
+    return Document(str(path))
 
 
 def save_document(doc: Any, path: Path) -> None:
