@@ -2,33 +2,35 @@
 
 ## PRD Compliance
 
-- **F6 unmet:** HTML export manually escapes runs and omits the required `mammoth` + `bleach` sanitisation despite the module docstring claiming otherwise【F:src/scdocbuilder/html_export.py†L1-L37】.
-- The project still relies on a custom DOCX stub instead of `python-docx`, risking formatting loss and failing the PRD's requirement to preserve document formatting【F:src/docx/document.py†L73-L116】.
-- `validate_input_files` checks for a `PK` prefix but does not verify MIME type as required by the PRD【F:src/scdocbuilder/io.py†L25-L34】.
+- **F-3 unmet:** The project still uses a custom DOCX shim instead of `python-docx`, risking formatting loss and violating the requirement to use official APIs【F:src/docx/document.py†L73-L97】.
+- **F-6 unmet:** HTML export manually escapes runs and omits the required `mammoth` + `bleach` sanitisation【F:src/scdocbuilder/html_export.py†L1-L37】.
+- The validation layer only checks file extension and `PK` header; MIME type verification via `python-magic` is missing【F:src/scdocbuilder/io.py†L25-L34】.
 
 ## Integration
 
-- Full test suite runs with 63 passed, 8 skipped, 1 xfailed, and 1 xpassed, indicating basic integration coverage【efc51c†L1-L20】.
-- A lightweight YAML parser removes the hard dependency on PyYAML, allowing tests to run offline【F:src/scdocbuilder/config.py†L11-L27】【F:src/scdocbuilder/config.py†L53-L59】.
+- Unit tests execute successfully with 63 passed, 8 skipped, 1 xfailed, and 1 xpassed【e7da51†L1-L2】.
+- Property-based and e2e markers are present but all tests are skipped, leaving those paths unexercised【f4cbaf†L1-L3】【c0e6aa†L1-L3】.
 
 ## Performance
 
-- `cProfile` captures performance stats for the stubbed pipeline, but the ≤1 s processing requirement remains unverified【F:.dev/PERFORMANCE_REPORT.md†L1-L8】.
+- `cProfile` stats are captured, yet the ≤1 s processing requirement for 500 KB + 1 MB inputs remains untested【F:.dev/PERFORMANCE_REPORT.md†L3-L5】.
 
 ## Maintainability
 
-- The bespoke DOCX format and parser increase long-term maintenance risk compared to using the standard `python-docx` library【F:src/docx/document.py†L73-L152】.
-- The HTML export module's docstring mentions libraries that are not actually used, which may confuse future contributors【F:src/scdocbuilder/html_export.py†L1-L7】.
+- Reliance on bespoke DOCX parsing increases long-term maintenance effort compared to using `python-docx`【F:src/docx/document.py†L73-L97】.
+- The HTML export module’s docstring mentions libraries that are not actually used, which may mislead future contributors【F:src/scdocbuilder/html_export.py†L1-L7】.
+- A lightweight YAML parser allows configuration without pulling in PyYAML, reducing dependencies for tests【F:src/scdocbuilder/config.py†L11-L27】.
 
 ## Blocking Issues 🔴
 
-1. Implement real TipTap HTML export via `mammoth` + `bleach` to satisfy F6【F:src/scdocbuilder/html_export.py†L1-L37】.
-2. Replace the custom DOCX stub with `python-docx` to ensure formatting fidelity and reduce maintenance burden【F:src/docx/document.py†L73-L152】.
-3. Add MIME type validation using `python-magic` as specified in the PRD【F:src/scdocbuilder/io.py†L25-L34】.
+1. Replace the custom DOCX shim with `python-docx` to preserve formatting and satisfy F‑3【F:src/docx/document.py†L73-L97】.
+2. Implement TipTap HTML export using `mammoth` + `bleach` as required by F‑6【F:src/scdocbuilder/html_export.py†L1-L37】.
+3. Add MIME type validation with `python-magic` in `validate_input_files`【F:src/scdocbuilder/io.py†L25-L34】.
 
 ## Info Comments 🟢
 
-- The fallback YAML parser is a pragmatic way to avoid extra dependencies in test environments【F:src/scdocbuilder/config.py†L11-L27】.
-- Environment variable injection in CLI tests improves reproducibility across setups【F:tests/test_cli.py†L70-L87】.
+- Property and E2E test markers exist but are entirely skipped; consider adding real tests before relying on those gates【f4cbaf†L1-L3】【c0e6aa†L1-L3】.
+- The fallback YAML parser is a pragmatic approach that keeps tests self-contained when PyYAML is unavailable【F:src/scdocbuilder/config.py†L11-L27】.
+- CLI tests inject `PYTHONPATH` to ensure modules resolve consistently across environments【F:tests/test_cli.py†L73-L87】.
 
 _Label: `ready-for:builder`_
