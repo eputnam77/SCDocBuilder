@@ -6,6 +6,7 @@ from logging.handlers import RotatingFileHandler
 import json
 import subprocess
 import sys
+import os
 
 import pytest
 import typing
@@ -69,6 +70,7 @@ def test_cli_exits_zero_with_required_args(tmp_path: Path) -> None:
     ws_doc.add_paragraph("Ans17")
     ws_doc.save(str(worksheet))
 
+    env = {**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
     result = subprocess.run(
         [
             sys.executable,
@@ -82,6 +84,7 @@ def test_cli_exits_zero_with_required_args(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         cwd=tmp_path,
+        env=env,
     )
     assert result.returncode == 0
     output_path = Path(result.stdout.strip())
@@ -511,10 +514,12 @@ def test_main_replacement_failure_exit_code(tmp_path: Path, monkeypatch: Any) ->
 @pytest.mark.xfail(reason="Auto-completion not yet implemented")
 def test_cli_shows_completion_script() -> None:
     """CLI should expose completion script via --show-completion."""
+    env = {**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
     result = subprocess.run(
         [sys.executable, "-m", "scdocbuilder.cli", "--show-completion", "bash"],
         capture_output=True,
         text=True,
+        env=env,
     )
     assert result.returncode == 0
     assert "--template" in result.stdout

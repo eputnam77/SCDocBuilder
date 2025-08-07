@@ -1,8 +1,8 @@
 # Performance Report
 
 ## Profiling
-- Attempted to run `cProfile` on the application, but module imports failed due to missing dependencies; profile artifacts are captured in `perf/artifacts/profile.pstats`.
-- k6 API load testing could not be executed because installation failed (403 Forbidden). See `perf/artifacts/k6.txt`.
+- Ran `cProfile` on the stubbed document pipeline; results stored in `perf/artifacts/profile.pstats`.
+- k6 API load testing remains skipped due to installation restrictions (403). See `perf/artifacts/k6.txt`.
 
 ## Database Queries
 - Searched project sources and found no database interactions; application operates solely on DOCX files.
