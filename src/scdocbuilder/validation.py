@@ -23,7 +23,14 @@ def _find_question_answer(paragraphs: list[str], index: int) -> str:
 
 
 def validate_mandatory_fields(doc: Document) -> None:
-    """Raise ``ValueError`` if required worksheet fields are missing."""
+    """Check worksheet for required fields and questions.
+
+    Args:
+        doc: Worksheet document to validate.
+
+    Raises:
+        ValueError: If any mandatory field or question is missing.
+    """
 
     values = extract_fields(doc)
     for key in MANDATORY_PLACEHOLDERS:

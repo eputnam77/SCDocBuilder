@@ -24,7 +24,14 @@ OPTION_PATTERN = re.compile(r"\[\[OPTION_(\d)\]\](.*?)\[\[/OPTION_\1\]\]", re.DO
 
 
 def _iter_textbox_paragraphs(part: Any) -> list[Paragraph]:
-    """Return paragraphs contained in text boxes of ``part``."""
+    """Return paragraphs contained in text boxes of ``part``.
+
+    Args:
+        part: Document part whose text boxes are searched.
+
+    Returns:
+        List of paragraphs inside any text boxes.
+    """
     paragraphs: list[Paragraph] = []
     for txbx in part.element.xpath(".//w:txbxContent"):
         for p in txbx.xpath(".//w:p"):
@@ -33,7 +40,12 @@ def _iter_textbox_paragraphs(part: Any) -> list[Paragraph]:
 
 
 def _set_paragraph_text(paragraph: Paragraph, text: str) -> None:
-    """Replace paragraph runs with a single run containing ``text``."""
+    """Replace all runs in ``paragraph`` with ``text``.
+
+    Args:
+        paragraph: Paragraph to modify.
+        text: New content for the paragraph.
+    """
 
     for run in list(paragraph.runs):
         paragraph._p.remove(run._r)
@@ -46,7 +58,16 @@ def extract_fields(
 ) -> Dict[str, str]:
     """Extract placeholder values from a worksheet document.
 
-    ``field_mappings`` allows loading custom schemas from configuration files.
+    Args:
+        doc: Worksheet document to parse.
+        field_mappings: Optional mapping of question text to placeholders.
+
+    Returns:
+        Mapping of placeholders to user‑provided values.
+
+    Example:
+        >>> extract_fields(doc, {"Name:": "{Name}"})
+        {'{Name}': 'Alice'}
     """
 
     if field_mappings is None:
@@ -90,7 +111,12 @@ def extract_fields(
 
 
 def replace_placeholders(doc: Document, values: Dict[str, str]) -> None:
-    """Replace all placeholders in ``doc`` with provided values."""
+    """Replace all placeholders in ``doc`` with ``values``.
+
+    Args:
+        doc: Template document whose placeholders are replaced.
+        values: Mapping of placeholders to replacement text.
+    """
 
     def process_paragraph(paragraph: Any) -> None:
         for run in paragraph.runs:
@@ -123,7 +149,12 @@ def replace_placeholders(doc: Document, values: Dict[str, str]) -> None:
 
 
 def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
-    """Remove conditional blocks that do not match the provided option."""
+    """Remove conditional blocks not matching the chosen option.
+
+    Args:
+        doc: Template document to modify.
+        answers: Mapping containing ``{Action option}``.
+    """
 
     active = answers.get("{Action option}")
     if not active:

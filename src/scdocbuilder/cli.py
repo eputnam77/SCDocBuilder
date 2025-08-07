@@ -27,7 +27,14 @@ class ErrorCode(IntEnum):
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Parse command-line arguments.
+
+    Args:
+        argv: Argument list or ``None`` to read from ``sys.argv``.
+
+    Returns:
+        Parsed arguments namespace.
+    """
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--template", required=True, help="Path to template .docx")
@@ -55,7 +62,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Run the placeholder replacer from the command line."""
+    """Run the placeholder replacer from the command line.
+
+    Args:
+        argv: Argument list or ``None`` to read from ``sys.argv``.
+
+    Raises:
+        SystemExit: With codes from :class:`ErrorCode` on failure.
+    """
 
     args = parse_args(argv)
     handlers: list[logging.Handler] = [

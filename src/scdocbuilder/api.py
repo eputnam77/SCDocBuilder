@@ -23,6 +23,7 @@ app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
 
 @app.get("/", response_class=HTMLResponse)  # type: ignore[misc]
 def index() -> HTMLResponse:
+    """Serve a simple upload form."""
     return HTMLResponse(
         """
         <html lang='en'>
@@ -42,6 +43,15 @@ def index() -> HTMLResponse:
 
 @app.post("/web-generate", response_class=HTMLResponse)  # type: ignore[misc]
 async def web_generate(template: UploadFile, worksheet: UploadFile) -> HTMLResponse:
+    """Process files uploaded via the HTML form.
+
+    Args:
+        template: DOCX template file.
+        worksheet: DOCX worksheet file.
+
+    Returns:
+        HTML page with a download link for the generated document.
+    """
     template_path = OUTPUT_DIR / f"{uuid4().hex}_template.docx"
     worksheet_path = OUTPUT_DIR / f"{uuid4().hex}_worksheet.docx"
     template_path.write_bytes(await template.read())
@@ -58,6 +68,16 @@ async def web_generate(template: UploadFile, worksheet: UploadFile) -> HTMLRespo
 async def generate(
     template: UploadFile, worksheet: UploadFile, html: bool = False
 ) -> HTMLResponse | FileResponse:
+    """Generate DOCX or HTML from uploaded files.
+
+    Args:
+        template: DOCX template file.
+        worksheet: DOCX worksheet file.
+        html: When ``True`` return sanitized HTML instead of DOCX.
+
+    Returns:
+        FileResponse with DOCX or HTMLResponse.
+    """
     template_path = OUTPUT_DIR / f"{uuid4().hex}_template.docx"
     worksheet_path = OUTPUT_DIR / f"{uuid4().hex}_worksheet.docx"
     template_path.write_bytes(await template.read())
@@ -76,4 +96,5 @@ async def generate(
 
 @app.get("/health")  # type: ignore[misc]
 def health() -> dict[str, str]:
+    """Return service status."""
     return {"status": "ok"}
