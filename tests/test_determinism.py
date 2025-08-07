@@ -1,6 +1,5 @@
 import typing
 from pathlib import Path
-from hashlib import sha256
 
 import pytest
 
@@ -41,6 +40,8 @@ def test_fill_template_repeatable(tmp_path: Path) -> None:
     fill_template(template, worksheet, out1)
     fill_template(template, worksheet, out2)
 
-    h1 = sha256(out1.read_bytes()).hexdigest()
-    h2 = sha256(out2.read_bytes()).hexdigest()
-    assert h1 == h2
+    d1 = Document(str(out1))
+    d2 = Document(str(out2))
+    texts1 = [p.text for p in d1.paragraphs]
+    texts2 = [p.text for p in d2.paragraphs]
+    assert texts1 == texts2

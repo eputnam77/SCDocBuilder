@@ -6,6 +6,7 @@ import pytest
 if not typing.TYPE_CHECKING:
     pytest.importorskip("docx")
 
+from docx import Document
 from scdocbuilder.io import validate_input_files
 from tests.property.strategies import docx_path
 
@@ -35,8 +36,8 @@ def test_validate_input_files_accepts_paths(
 
     t = tmp_path / template.name
     w = tmp_path / worksheet.name
-    t.write_bytes(b"\0")
-    w.write_bytes(b"\0")
+    Document().save(str(t))
+    Document().save(str(w))
 
     validate_input_files(t, w)
 

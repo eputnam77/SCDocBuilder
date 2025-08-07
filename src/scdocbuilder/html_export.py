@@ -20,6 +20,19 @@ def _render_runs(paragraph: Any) -> str:
     return "".join(parts)
 
 
+def _heading_level(paragraph: Any) -> int:
+    """Return heading level for ``paragraph`` if styled as a heading."""
+
+    style = getattr(paragraph, "style", None)
+    name = getattr(style, "name", "") if style else ""
+    if name.startswith("Heading "):
+        try:
+            return int(name.split(" ")[1])
+        except ValueError:
+            return 0
+    return 0
+
+
 def export_html(doc: Document) -> str:
     """Convert ``doc`` to sanitized HTML.
 
@@ -32,13 +45,13 @@ def export_html(doc: Document) -> str:
     """
 
     try:
-        import mammoth  # type: ignore
-        import bleach  # type: ignore
+        import mammoth
+        import bleach
     except Exception:
         parts: list[str] = []
         for paragraph in doc.paragraphs:
             content = _render_runs(paragraph)
-            level = getattr(paragraph, "level", 0)
+            level = _heading_level(paragraph)
             if level:
                 parts.append(f"<h{level}>{content}</h{level}>")
             else:
@@ -50,4 +63,6 @@ def export_html(doc: Document) -> str:
     buf.seek(0)
     result = mammoth.convert_to_html(buf)
     allowed = ["p", "h1", "h2", "h3", "ul", "ol", "li", "em", "strong", "a"]
-    return bleach.clean(result.value, tags=allowed, strip=True)
+    from typing import cast
+
+    return cast(str, bleach.clean(result.value, tags=allowed, strip=True))

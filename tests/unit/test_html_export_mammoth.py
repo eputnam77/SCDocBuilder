@@ -1,5 +1,6 @@
-from io import BytesIO
 from types import SimpleNamespace
+from typing import Any
+import io
 import sys
 
 import pytest
@@ -11,14 +12,14 @@ from docx import Document
 from scdocbuilder.html_export import export_html
 
 
-def test_export_html_uses_mammoth_and_bleach(monkeypatch):
+def test_export_html_uses_mammoth_and_bleach(monkeypatch: pytest.MonkeyPatch) -> None:
     doc = Document()
     doc.add_paragraph("hello")
 
     calls = {"mammoth": False, "bleach": False}
 
-    def fake_convert(fileobj, **_):
-        assert isinstance(fileobj, BytesIO)
+    def fake_convert(fileobj: io.BytesIO, **_: Any) -> Any:
+        assert isinstance(fileobj, io.BytesIO)
         calls["mammoth"] = True
 
         class Result:
@@ -26,7 +27,7 @@ def test_export_html_uses_mammoth_and_bleach(monkeypatch):
 
         return Result()
 
-    def fake_clean(html, tags=None, strip=False, **_):
+    def fake_clean(html: str, tags: Any = None, strip: bool = False, **_: Any) -> str:
         calls["bleach"] = html == "<p>hi</p>" and strip
         return html
 
