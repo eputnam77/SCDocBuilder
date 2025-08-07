@@ -39,8 +39,19 @@ def fill_template(
 ) -> Path:
     """Fill ``template_path`` with values from ``worksheet_path``.
 
-    The processed document is saved to ``output_path``. If none is provided a
-    timestamped file is created next to the template.
+    Args:
+        template_path: Path to the template Word document.
+        worksheet_path: Path to the worksheet with answers.
+        output_path: Where to save the filled document. If ``None`` a
+            timestamped file is created beside ``template_path``.
+        schema: Optional placeholder mapping loaded from JSON or YAML.
+
+    Returns:
+        Path to the saved document.
+
+    Example:
+        >>> fill_template("template.docx", "worksheet.docx")
+        PosixPath('template_20250101_120000.docx')
     """
 
     template = Path(template_path)

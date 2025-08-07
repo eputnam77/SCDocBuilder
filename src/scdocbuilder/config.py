@@ -10,7 +10,19 @@ from functools import lru_cache
 
 @lru_cache(maxsize=None)
 def load_placeholder_schema(path: Path) -> Dict[str, str]:
-    """Load placeholder schema from a JSON or YAML file."""
+    """Load placeholder schema from a JSON or YAML file.
+
+    Args:
+        path: File containing placeholder mappings.
+
+    Returns:
+        Dictionary mapping worksheet fields to template placeholders.
+
+    Raises:
+        FileNotFoundError: If ``path`` does not exist.
+        ImportError: If a YAML file is requested without ``PyYAML``.
+        ValueError: If the file extension is unsupported.
+    """
 
     if not path.exists():
         raise FileNotFoundError(str(path))

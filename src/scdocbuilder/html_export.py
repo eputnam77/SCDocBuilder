@@ -7,7 +7,19 @@ from html import escape
 
 
 def export_html(doc: Document) -> str:
-    """Convert ``doc`` to sanitized HTML string."""
+    """Convert ``doc`` to sanitized HTML.
+
+    Args:
+        doc: Document to convert.
+
+    Returns:
+        HTML string safe for embedding in editors like TipTap.
+
+    Example:
+        >>> html = export_html(doc)
+        >>> html.startswith("<html>")
+        True
+    """
 
     parts = ["<html><body>"]
     for paragraph in doc.paragraphs:

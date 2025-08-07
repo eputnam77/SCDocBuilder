@@ -7,7 +7,15 @@ from time import perf_counter
 
 
 def benchmark_processing(template: Path, worksheet: Path) -> float:
-    """Return time in seconds to fill template using ``worksheet``."""
+    """Return time in seconds to process a worksheet.
+
+    Args:
+        template: Path to the template file.
+        worksheet: Path to the worksheet file.
+
+    Returns:
+        Time in seconds for loading both files.
+    """
     from .io import load_document
 
     start = perf_counter()
