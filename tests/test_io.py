@@ -1,9 +1,12 @@
 import pytest
-import typing
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-if not typing.TYPE_CHECKING:
+if TYPE_CHECKING:
+    from docx import Document
+else:
     pytest.importorskip("docx")
+    from docx import Document
 
 from scdocbuilder.io import validate_input_files
 
@@ -12,8 +15,8 @@ def test_validate_input_files(tmp_path: Path) -> None:
     """validate_input_files should raise for bad paths and succeed for good."""
     t = tmp_path / "t.docx"
     w = tmp_path / "w.docx"
-    t.write_bytes(b"\0")
-    w.write_bytes(b"\0")
+    Document().save(str(t))
+    Document().save(str(w))
 
     validate_input_files(t, w)
 

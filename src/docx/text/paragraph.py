@@ -67,6 +67,8 @@ class _Paragraph:
         else:
             self._p = _ParagraphElement(self)
             self.runs = []
+        # record heading level if used via Document.add_heading
+        self.level = 0
 
     def add_run(self, text: str = "") -> _Run:
         run = _Run(text, self)
