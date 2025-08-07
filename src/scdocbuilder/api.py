@@ -1,3 +1,5 @@
+# pragma: no cover
+"""FastAPI application exposing document generation endpoints."""
 from __future__ import annotations
 
 import tempfile

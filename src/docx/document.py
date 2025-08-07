@@ -120,12 +120,16 @@ class _Document:
         self.tables.append(table)
         return table
 
-    def save(self, path: str) -> None:
+    def save(self, target: Any) -> None:
         data = self._serialize().encode("utf-8")
         # Prefix with ``PK`` so ``validate_input_files`` can sanity‑check the
-        # pseudo‑DOCX magic number.
-        with open(path, "wb") as f:
-            f.write(b"PK" + data)
+        # pseudo‑DOCX magic number. ``target`` may be a filesystem path or any
+        # binary file-like object which implements ``write``.
+        if hasattr(target, "write"):
+            target.write(b"PK" + data)
+        else:
+            with open(target, "wb") as f:  # type: ignore[arg-type]
+                f.write(b"PK" + data)
 
     def _serialize(self) -> str:
         lines: List[str] = []
