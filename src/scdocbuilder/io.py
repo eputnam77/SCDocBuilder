@@ -8,6 +8,7 @@ from typing import Any
 from docx import Document
 
 MAX_SIZE = 10 * 1024 * 1024  # 10 MB
+DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
 def validate_input_files(template: Path, worksheet: Path) -> None:
@@ -30,8 +31,18 @@ def validate_input_files(template: Path, worksheet: Path) -> None:
         if file.stat().st_size > MAX_SIZE:
             raise ValueError(f"{file} exceeds size limit")
         with file.open("rb") as fh:
-            if fh.read(2) != b"PK":
+            head = fh.read(2048)
+            if head[:2] != b"PK":
                 raise ValueError(f"{file} is not a valid docx file")
+            try:
+                import magic  # type: ignore
+
+                mime = magic.from_buffer(head, mime=True)  # type: ignore[attr-defined]
+            except (ImportError, AttributeError):
+                pass
+            else:
+                if mime != DOCX_MIME:
+                    raise ValueError(f"{file} has MIME {mime}")
 
 
 def load_document(path: Path) -> Any:
