@@ -64,9 +64,11 @@ def main(argv: list[str] | None = None) -> None:
             "scdocbuilder.log", maxBytes=5 * 1024 * 1024, backupCount=2
         ),
     ]
+    # Preserve any existing handlers (e.g. from tests) while configuring ours
+    existing = logging.getLogger().handlers
     logging.basicConfig(
         level=getattr(logging, args.log_level),
-        handlers=handlers,
+        handlers=[*existing, *handlers],
         force=True,
     )
     template = Path(args.template)
@@ -132,10 +134,22 @@ def main(argv: list[str] | None = None) -> None:
                     html = export_html(template_doc)
                     Path(args.html_out).write_text(html, encoding="utf-8")
     except FileNotFoundError as exc:
-        logging.error(str(exc))
+        error = {
+            "event": "worksheet_parse_error",
+            "field": "worksheet",
+            "old": str(exc),
+            "new": "",
+        }
+        logging.error(json.dumps(error))
         sys.exit(ErrorCode.ENOFILE)
     except ValueError as exc:
-        logging.error(str(exc))
+        error = {
+            "event": "worksheet_parse_error",
+            "field": "worksheet",
+            "old": str(exc),
+            "new": "",
+        }
+        logging.error(json.dumps(error))
         sys.exit(ErrorCode.EVALID)
     except Exception as exc:  # pragma: no cover - unexpected errors
         logging.exception("Processing failed", exc_info=exc)

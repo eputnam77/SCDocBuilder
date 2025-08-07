@@ -55,7 +55,7 @@ def extract_fields(
     results: Dict[str, str] = {}
 
     def clean(text: str) -> str:
-        return " ".join(text.strip().split())
+        return text.strip()
 
     paragraphs = list(doc.paragraphs)
     for i, paragraph in enumerate(paragraphs):
@@ -63,8 +63,18 @@ def extract_fields(
         for field, placeholder in field_mappings.items():
             if text.startswith(field):
                 value = text[len(field) :].strip()
-                if not value and i + 1 < len(paragraphs):
-                    value = paragraphs[i + 1].text.strip()
+                if not value:
+                    lines = []
+                    j = i + 1
+                    while j < len(paragraphs):
+                        next_text = paragraphs[j].text.strip()
+                        if not next_text or any(
+                            next_text.startswith(f) for f in field_mappings
+                        ):
+                            break
+                        lines.append(next_text)
+                        j += 1
+                    value = "\n".join(lines)
                 results[placeholder] = clean(value)
 
     for table in doc.tables:
@@ -130,7 +140,10 @@ def apply_conditionals(doc: Document, answers: Dict[str, str]) -> None:
 
         new_text = re.sub(OPTION_PATTERN, repl, full_text)
         if new_text != full_text:
-            _set_paragraph_text(paragraph, new_text)
+            cleaned = "\n".join(
+                line.strip() for line in new_text.splitlines() if line.strip()
+            )
+            _set_paragraph_text(paragraph, cleaned)
 
     for paragraph in doc.paragraphs:
         process_paragraph(paragraph)
