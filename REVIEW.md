@@ -2,35 +2,37 @@
 
 ## PRD Compliance
 
-- **Functional requirements** F1–F6, F8–F9 are implemented in the CLI. Argument parsing shows required options and flags【F:src/faa_sc_replacer/cli.py†L27-L47】. Placeholder replacement and conditional blocks traverse all parts of the document【F:src/faa_sc_replacer/processing.py†L30-L147】. Output filenames are auto-generated when `--output` is omitted【F:src/faa_sc_replacer/__init__.py†L45-L48】.
-- **F7 (download link in web UI)** is not implemented; only CLI support exists.
-- **Non-functional requirements**: coverage is above 90% (95% from tests)【16a1b2†L11-L22】. Input validation checks file type and size but does not verify worksheet fields【F:src/faa_sc_replacer/io.py†L13-L22】.
+- **F1–F5, F7–F9** implemented: CLI enforces required `--template` and worksheet/batch flags with optional `--output`, `--schema`, `--dry-run`, `--html-out`, and logging options【F:src/scdocbuilder/cli.py†L39-L57】. When `--output` is omitted the program saves to `{template-stem}_{timestamp}.docx`【F:src/scdocbuilder/cli.py†L131-L137】. Placeholder values are extracted from paragraphs and tables and replacements cover text boxes, tables, headers, and footers with conditional blocks handled via a precompiled regex【F:src/scdocbuilder/processing.py†L81-L109】【F:src/scdocbuilder/processing.py†L121-L148】. `--dry-run` emits a JSON diff, and errors return explicit exit codes【F:src/scdocbuilder/cli.py†L139-L141】【F:src/scdocbuilder/cli.py†L20-L26】【F:src/scdocbuilder/cli.py†L150-L170】.
+- **F6** unmet: HTML export simply escapes text and omits the required `mammoth` + `bleach` sanitisation【F:src/scdocbuilder/html_export.py†L1-L28】.
+- Validation only checks file extension and size; MIME verification from the PRD is missing【F:src/scdocbuilder/io.py†L25-L31】.
 
 ## Integration
 
-- Tests pass on Python 3.12 (30 tests) with coverage 95%【16a1b2†L11-L22】.
-- Linting, formatting, and type checks succeed after fixing test files.
-- Bandit finds no issues【7fdd85†L1-L25】. Semgrep failed due to network restrictions.
+- Unit tests: 24 failed / 39 passed; most failures arise because the local `docx` stub lacks file-path loading, causing `TypeError` during document operations【d834d0†L1-L22】【F:src/docx/document.py†L73-L75】【F:src/scdocbuilder/io.py†L44-L45】.
+- Property and e2e tests are skipped, leaving key paths untested【825b4f†L1-L3】【82c6da†L1-L3】.
+- Bandit, Semgrep, pytest-cov, and mutmut could not run—dependencies unavailable in the current environment.
 
 ## Performance
 
-- No regressions measured. Placeholder replacement loops may scale poorly on large documents, as noted previously. Regex for conditional blocks is recompiled each call【F:src/faa_sc_replacer/processing.py†L104-L111】.
+- Conditional block regex is compiled once at import to avoid repetitive cost【F:src/scdocbuilder/processing.py†L22-L23】. The `benchmark_processing` helper times document loading, but failing tests prevent verifying the ≤1 s requirement.
 
 ## Maintainability
 
-- Code structure remains modular with simple helper functions. Tests have been expanded (e.g., full DOCX traversal)【F:tests/test_processing_extra.py†L56-L109】.
-- CI workflow (`agents.yml.disabled`) remains disabled; enabling it would enforce quality gates.
+- Repository uses a custom `docx` stub whose API diverges from `python-docx`, breaking real document handling and tests【F:src/docx/document.py†L73-L79】.
+- `export_html` lacks true sanitisation, risking unsanitised HTML output【F:src/scdocbuilder/html_export.py†L1-L28】.
 
 ## Blocking Issues 🔴
 
-1. F7 (web download link) and FastAPI endpoints (PRD section 8a) remain unimplemented.
-2. Validation does not enforce mandatory worksheet fields (PRD §10).
-3. Semgrep scan could not run due to network restrictions. Provide offline config or skip in CI.
+1. Custom `docx` stub incompatible with `python-docx`, leading to failing tests and unusable document IO【F:src/docx/document.py†L73-L79】【F:src/scdocbuilder/io.py†L44-L45】.
+2. F6 (TipTap HTML export) unfulfilled; HTML output is not sanitised【F:src/scdocbuilder/html_export.py†L1-L28】.
+3. File validation omits MIME checking contrary to PRD requirements【F:src/scdocbuilder/io.py†L25-L31】.
+4. YAML schema loading requires optional PyYAML dependency; tests fail when absent【d834d0†L10】.
+5. Security and quality tools (Bandit, Semgrep, coverage, mutation) not executed.
 
 ## Info Comments 🟢
 
-- Consider precompiling the conditional regex for slight speed boost.
-- README lacks usage examples and contribution guidelines (task T-019).
-- GitHub Actions workflow should be enabled for automated tests (task T-018).
+- Regex precompilation for conditionals is good; consider similar optimisations for other heavy patterns【F:src/scdocbuilder/processing.py†L22-L23】.
+- Provide offline caches or bundled wheels so Bandit/Semgrep/pytest-cov/mutmut can run without network access.
+- Expand README with contribution guidelines and examples for broader developer uptake.
 
 _Label: `ready-for:builder`_
