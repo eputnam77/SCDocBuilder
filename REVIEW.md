@@ -2,37 +2,33 @@
 
 ## PRD Compliance
 
-- **F1–F5, F7–F9** implemented: CLI enforces required `--template` and worksheet/batch flags with optional `--output`, `--schema`, `--dry-run`, `--html-out`, and logging options【F:src/scdocbuilder/cli.py†L39-L57】. When `--output` is omitted the program saves to `{template-stem}_{timestamp}.docx`【F:src/scdocbuilder/cli.py†L131-L137】. Placeholder values are extracted from paragraphs and tables and replacements cover text boxes, tables, headers, and footers with conditional blocks handled via a precompiled regex【F:src/scdocbuilder/processing.py†L81-L109】【F:src/scdocbuilder/processing.py†L121-L148】. `--dry-run` emits a JSON diff, and errors return explicit exit codes【F:src/scdocbuilder/cli.py†L139-L141】【F:src/scdocbuilder/cli.py†L20-L26】【F:src/scdocbuilder/cli.py†L150-L170】.
-- **F6** unmet: HTML export simply escapes text and omits the required `mammoth` + `bleach` sanitisation【F:src/scdocbuilder/html_export.py†L1-L28】.
-- Validation only checks file extension and size; MIME verification from the PRD is missing【F:src/scdocbuilder/io.py†L25-L31】.
+- **F6 unmet:** HTML export manually escapes runs and omits the required `mammoth` + `bleach` sanitisation despite the module docstring claiming otherwise【F:src/scdocbuilder/html_export.py†L1-L37】.
+- The project still relies on a custom DOCX stub instead of `python-docx`, risking formatting loss and failing the PRD's requirement to preserve document formatting【F:src/docx/document.py†L73-L116】.
+- `validate_input_files` checks for a `PK` prefix but does not verify MIME type as required by the PRD【F:src/scdocbuilder/io.py†L25-L34】.
 
 ## Integration
 
-- Unit tests: 24 failed / 39 passed; most failures arise because the local `docx` stub lacks file-path loading, causing `TypeError` during document operations【d834d0†L1-L22】【F:src/docx/document.py†L73-L75】【F:src/scdocbuilder/io.py†L44-L45】.
-- Property and e2e tests are skipped, leaving key paths untested【825b4f†L1-L3】【82c6da†L1-L3】.
-- Bandit, Semgrep, pytest-cov, and mutmut could not run—dependencies unavailable in the current environment.
+- Full test suite runs with 63 passed, 8 skipped, 1 xfailed, and 1 xpassed, indicating basic integration coverage【efc51c†L1-L20】.
+- A lightweight YAML parser removes the hard dependency on PyYAML, allowing tests to run offline【F:src/scdocbuilder/config.py†L11-L27】【F:src/scdocbuilder/config.py†L53-L59】.
 
 ## Performance
 
-- Conditional block regex is compiled once at import to avoid repetitive cost【F:src/scdocbuilder/processing.py†L22-L23】. The `benchmark_processing` helper times document loading, but failing tests prevent verifying the ≤1 s requirement.
+- `cProfile` captures performance stats for the stubbed pipeline, but the ≤1 s processing requirement remains unverified【F:.dev/PERFORMANCE_REPORT.md†L1-L8】.
 
 ## Maintainability
 
-- Repository uses a custom `docx` stub whose API diverges from `python-docx`, breaking real document handling and tests【F:src/docx/document.py†L73-L79】.
-- `export_html` lacks true sanitisation, risking unsanitised HTML output【F:src/scdocbuilder/html_export.py†L1-L28】.
+- The bespoke DOCX format and parser increase long-term maintenance risk compared to using the standard `python-docx` library【F:src/docx/document.py†L73-L152】.
+- The HTML export module's docstring mentions libraries that are not actually used, which may confuse future contributors【F:src/scdocbuilder/html_export.py†L1-L7】.
 
 ## Blocking Issues 🔴
 
-1. Custom `docx` stub incompatible with `python-docx`, leading to failing tests and unusable document IO【F:src/docx/document.py†L73-L79】【F:src/scdocbuilder/io.py†L44-L45】.
-2. F6 (TipTap HTML export) unfulfilled; HTML output is not sanitised【F:src/scdocbuilder/html_export.py†L1-L28】.
-3. File validation omits MIME checking contrary to PRD requirements【F:src/scdocbuilder/io.py†L25-L31】.
-4. YAML schema loading requires optional PyYAML dependency; tests fail when absent【d834d0†L10】.
-5. Security and quality tools (Bandit, Semgrep, coverage, mutation) not executed.
+1. Implement real TipTap HTML export via `mammoth` + `bleach` to satisfy F6【F:src/scdocbuilder/html_export.py†L1-L37】.
+2. Replace the custom DOCX stub with `python-docx` to ensure formatting fidelity and reduce maintenance burden【F:src/docx/document.py†L73-L152】.
+3. Add MIME type validation using `python-magic` as specified in the PRD【F:src/scdocbuilder/io.py†L25-L34】.
 
 ## Info Comments 🟢
 
-- Regex precompilation for conditionals is good; consider similar optimisations for other heavy patterns【F:src/scdocbuilder/processing.py†L22-L23】.
-- Provide offline caches or bundled wheels so Bandit/Semgrep/pytest-cov/mutmut can run without network access.
-- Expand README with contribution guidelines and examples for broader developer uptake.
+- The fallback YAML parser is a pragmatic way to avoid extra dependencies in test environments【F:src/scdocbuilder/config.py†L11-L27】.
+- Environment variable injection in CLI tests improves reproducibility across setups【F:tests/test_cli.py†L70-L87】.
 
 _Label: `ready-for:builder`_
