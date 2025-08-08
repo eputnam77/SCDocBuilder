@@ -11,15 +11,6 @@ notice. It handles table fields, conditional blocks and multiline responses.
 
 You avoid manual editing and stay consistent with AIR-646 style in seconds.
 
-## How
-
-* CLI: `python -m scdocbuilder`
-* FastAPI: `uvicorn scdocbuilder.api:app`
-* Library: call functions in [`docs/api/python.md`](docs/api/python.md)
-
-See [`docs/scenarios.md`](docs/scenarios.md) for step-by-step tasks.
-
-
 ______________________________________________________________________
 
 ## ✨ Quick install (recommended)
@@ -32,9 +23,11 @@ python --version                # confirm Python ≥3.11
 
 # Debian / Raspberry Pi OS
 sudo apt update
-sudo apt install pipx
+sudo apt install -y python3 python3-venv pipx
 pipx ensurepath                # add pipx to PATH
-source ~/.bashrc               # reload sheel so PATH is updated
+source ~/.bashrc               # reload shell so PATH is updated
+# If using zsh instead of bash, run:
+# source ~/.zshrc
 
 # Windows
 python -m pip install --user pipx
@@ -69,6 +62,10 @@ uv pip install --upgrade pip pre-commit
 
 # 5. Install Git hooks -----------------------------------------------------------
 pre-commit install
+
+# 6. (Optional) Open generated docs in Word --------------------------------------
+# Windows/macOS: double-click the .docx to open in Microsoft Word 2019+
+# Debian/Raspberry Pi OS: `sudo apt install libreoffice` or copy to a machine with Word
 ```
 
 ______________________________________________________________________
