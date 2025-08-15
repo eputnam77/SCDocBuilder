@@ -6,6 +6,7 @@ from docx.document import Document
 from html import escape
 from io import BytesIO
 from typing import Any
+import re
 
 
 def _render_runs(paragraph: Any) -> str:
@@ -24,12 +25,14 @@ def _heading_level(paragraph: Any) -> int:
     """Return heading level for ``paragraph`` if styled as a heading."""
 
     style = getattr(paragraph, "style", None)
-    name = getattr(style, "name", "") if style else ""
-    if name.startswith("Heading "):
-        try:
-            return int(name.split(" ")[1])
-        except ValueError:
-            return 0
+    if not style:
+        return 0
+
+    candidates = [getattr(style, "name", ""), getattr(style, "style_id", "")]
+    for cand in candidates:
+        match = re.search(r"heading\s*([1-6])", str(cand), flags=re.IGNORECASE)
+        if match:
+            return int(match.group(1))
     return 0
 
 
@@ -62,7 +65,21 @@ def export_html(doc: Document) -> str:
     doc.save(buf)
     buf.seek(0)
     result = mammoth.convert_to_html(buf)
-    allowed = ["p", "h1", "h2", "h3", "ul", "ol", "li", "em", "strong", "a"]
+    allowed = [
+        "p",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "ul",
+        "ol",
+        "li",
+        "em",
+        "strong",
+        "a",
+    ]
     from typing import cast
 
     return cast(str, bleach.clean(result.value, tags=allowed, strip=True))
