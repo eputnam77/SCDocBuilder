@@ -513,7 +513,6 @@ def test_main_replacement_failure_exit_code(tmp_path: Path, monkeypatch: Any) ->
     assert exc.value.code == ErrorCode.EREPLACE
 
 
-@pytest.mark.xfail(reason="Auto-completion not yet implemented")
 def test_cli_shows_completion_script() -> None:
     """CLI should expose completion script via --show-completion."""
     env = {**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
@@ -525,3 +524,4 @@ def test_cli_shows_completion_script() -> None:
     )
     assert result.returncode == 0
     assert "--template" in result.stdout
+    assert "--worksheet" in result.stdout

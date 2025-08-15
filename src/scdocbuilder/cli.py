@@ -37,8 +37,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--template", required=True, help="Path to template .docx")
-    group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument("--template", help="Path to template .docx")
+    group = parser.add_mutually_exclusive_group()
     group.add_argument("--worksheet", help="Path to worksheet .docx")
     group.add_argument(
         "--batch",
@@ -58,7 +58,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Logging verbosity",
     )
-    return parser.parse_args(argv)
+    parser.add_argument(
+        "--show-completion",
+        nargs="?",
+        const="bash",
+        metavar="SHELL",
+        help="Show shell completion script for the given shell and exit",
+    )
+    args = parser.parse_args(argv)
+    if args.show_completion:
+        return args
+    if not args.template:
+        parser.error("--template is required")
+    if not (args.worksheet or args.batch):
+        parser.error("one of --worksheet or --batch is required")
+    return args
+
+
+def _generate_completion(shell: str) -> str:
+    """Return a simple shell completion script."""
+
+    options = [
+        "--template",
+        "--worksheet",
+        "--batch",
+        "--output",
+        "--schema",
+        "--dry-run",
+        "--html-out",
+        "--log-level",
+        "--show-completion",
+    ]
+    if shell == "bash":
+        opts = " ".join(options)
+        return f'complete -W "{opts}" scdocbuilder'
+    raise ValueError(f"Unsupported shell: {shell}")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -72,6 +106,11 @@ def main(argv: list[str] | None = None) -> None:
     """
 
     args = parse_args(argv)
+
+    if args.show_completion:
+        print(_generate_completion(args.show_completion))
+        return
+
     handlers: list[logging.Handler] = [
         logging.StreamHandler(),
         RotatingFileHandler(
