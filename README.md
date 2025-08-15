@@ -96,7 +96,7 @@ pip install -e .
 
 ______________________________________________________________________
 
-## Run the API and dashboard
+## Run the API, dashboard, and React frontend
 
 ```bash
 # API – FastAPI with automatic Swagger UI at /docs
@@ -106,6 +106,14 @@ python -m scdocbuilder api serve --port 8000
 # Dashboard – lightweight Streamlit example
 pip install streamlit
 streamlit run src/streamlit_dashboard.py
+
+# React frontend – run the companion React app
+# (requires Node.js 18+ and npm)
+git clone https://github.com/eputnam77/scdocbuilder-react-frontend.git
+cd scdocbuilder-react-frontend
+npm install
+echo "VITE_API_URL=http://localhost:8000" > .env.local
+npm run dev  # open http://localhost:5173
 ```
 
 ______________________________________________________________________
