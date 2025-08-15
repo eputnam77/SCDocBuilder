@@ -118,6 +118,31 @@ npm run dev  # open http://localhost:5173
 
 ______________________________________________________________________
 
+## 🚢 Docker image
+
+Build and publish a containerised version of the CLI and API.
+
+```bash
+# Build the image
+docker build -t scdocbuilder .
+
+# Use the CLI
+docker run --rm scdocbuilder --help
+
+# Run the API on port 8000
+docker run --rm -p 8000:8000 scdocbuilder api serve --host 0.0.0.0
+
+# Push to a registry (example uses GitHub Container Registry)
+docker tag scdocbuilder ghcr.io/<user>/scdocbuilder:latest
+docker push ghcr.io/<user>/scdocbuilder:latest
+
+# Alternatively use the helper script
+./scripts/docker-build.sh                # build only
+./scripts/docker-build.sh scdocbuilder ghcr.io/<user>   # build and push
+```
+
+______________________________________________________________________
+
 ## 🧪 Quality Checks & Testing Guide
 
 This project uses a multi-tool testing pipeline to ensure code quality, formatting, type safety, security, and robustness. Below is the full suite of commands and best practices for local development and CI validation.
