@@ -14,9 +14,15 @@ def test_console_script_entrypoint() -> None:
 
 
 @pytest.mark.skipif(shutil.which("docker") is None, reason="Docker not installed")
-@pytest.mark.xfail(reason="Docker image not yet provided")
 def test_docker_image_help() -> None:
     """`docker run scdocbuilder --help` should print usage information."""
+    build = subprocess.run(
+        ["docker", "build", "-t", "scdocbuilder", "."],
+        capture_output=True,
+        text=True,
+    )
+    assert build.returncode == 0, build.stderr
+
     result = subprocess.run(
         ["docker", "run", "--rm", "scdocbuilder", "--help"],
         capture_output=True,
