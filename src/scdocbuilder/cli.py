@@ -165,7 +165,7 @@ def main(argv: list[str] | None = None) -> None:
         }
         logging.error(json.dumps(error))
         sys.exit(ErrorCode.EVALID)
-    except Exception as exc:  # pragma: no cover - unexpected errors
+    except Exception as exc:
         logging.exception("Processing failed", exc_info=exc)
         sys.exit(ErrorCode.EREPLACE)
 

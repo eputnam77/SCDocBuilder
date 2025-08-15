@@ -40,7 +40,9 @@ def test_export_html_tiptap_ready() -> None:
             super().__init__()
             self.tags: set[str] = set()
 
-        def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:  # type: ignore[override]
+        def handle_starttag(
+            self, tag: str, attrs: list[tuple[str, str | None]]
+        ) -> None:
             self.tags.add(tag)
 
     parser = Collector()
