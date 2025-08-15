@@ -1,5 +1,5 @@
-# pragma: no cover
 """FastAPI application exposing document generation endpoints."""
+
 from __future__ import annotations
 
 import tempfile
@@ -23,7 +23,6 @@ app = FastAPI()
 app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
 
 
-@app.get("/", response_class=HTMLResponse)  # type: ignore[misc]
 def index() -> HTMLResponse:
     """Serve a simple upload form."""
     return HTMLResponse(
@@ -43,7 +42,6 @@ def index() -> HTMLResponse:
     )
 
 
-@app.post("/web-generate", response_class=HTMLResponse)  # type: ignore[misc]
 async def web_generate(template: UploadFile, worksheet: UploadFile) -> HTMLResponse:
     """Process files uploaded via the HTML form.
 
@@ -66,7 +64,6 @@ async def web_generate(template: UploadFile, worksheet: UploadFile) -> HTMLRespo
     return HTMLResponse(f"<a href='{href}'>Download result</a>")
 
 
-@app.post("/generate")  # type: ignore[misc]
 async def generate(
     template: UploadFile, worksheet: UploadFile, html: bool = False
 ) -> HTMLResponse | FileResponse:
@@ -96,7 +93,12 @@ async def generate(
     return FileResponse(output, filename=output.name)
 
 
-@app.get("/health")  # type: ignore[misc]
 def health() -> dict[str, str]:
     """Return service status."""
     return {"status": "ok"}
+
+
+app.get("/", response_class=HTMLResponse)(index)
+app.post("/web-generate", response_class=HTMLResponse)(web_generate)
+app.post("/generate")(generate)
+app.get("/health")(health)

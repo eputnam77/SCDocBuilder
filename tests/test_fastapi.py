@@ -10,7 +10,7 @@ else:
 
 try:
     from fastapi.testclient import TestClient
-except Exception:  # pragma: no cover - optional dependency
+except Exception:
     pytest.skip("fastapi not installed", allow_module_level=True)
 
 from scdocbuilder.api import app

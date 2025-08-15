@@ -1,6 +1,8 @@
-from datetime import datetime
+from __future__ import annotations
+
+from datetime import datetime, tzinfo
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 import logging
 from logging.handlers import RotatingFileHandler
 import json
@@ -112,8 +114,8 @@ def test_main_prints_output_path(tmp_path: Path, capsys: Any, monkeypatch: Any) 
 
     class FixedDateTime(datetime):
         @classmethod
-        def now(cls) -> datetime:  # type: ignore[override]
-            return fixed_time
+        def now(cls, tz: tzinfo | None = None) -> FixedDateTime:
+            return cast(FixedDateTime, fixed_time)
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr("scdocbuilder.cli.datetime", FixedDateTime)
@@ -205,8 +207,8 @@ def test_main_batch_processes_directory(tmp_path: Path, monkeypatch: Any) -> Non
 
     class FixedDateTime(datetime):
         @classmethod
-        def now(cls) -> datetime:  # type: ignore[override]
-            return fixed_time
+        def now(cls, tz: tzinfo | None = None) -> FixedDateTime:
+            return cast(FixedDateTime, fixed_time)
 
     monkeypatch.setattr("scdocbuilder.cli.datetime", FixedDateTime)
     monkeypatch.chdir(tmp_path)
@@ -413,8 +415,8 @@ def test_main_dry_run_outputs_json_and_no_file(
 
     class FixedDateTime(datetime):
         @classmethod
-        def now(cls) -> datetime:  # type: ignore[override]
-            return fixed_time
+        def now(cls, tz: tzinfo | None = None) -> FixedDateTime:
+            return cast(FixedDateTime, fixed_time)
 
     monkeypatch.setattr("scdocbuilder.cli.datetime", FixedDateTime)
     monkeypatch.chdir(tmp_path)

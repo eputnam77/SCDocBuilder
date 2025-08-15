@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 from functools import lru_cache
 
 
@@ -52,10 +52,10 @@ def load_placeholder_schema(path: Path) -> Dict[str, str]:
         return dict(json_data)
     elif path.suffix.lower() in {".yaml", ".yml"}:
         try:
-            import yaml  # type: ignore
+            yaml = __import__("yaml")
         except ModuleNotFoundError:
             return _parse_simple_yaml(path.read_text(encoding="utf-8"))
-        except ImportError as exc:  # pragma: no cover - unexpected import error
+        except ImportError as exc:
             raise ImportError("PyYAML is required for YAML files") from exc
         with path.open("r", encoding="utf-8") as f:
             yaml_data: Any = yaml.safe_load(f)
