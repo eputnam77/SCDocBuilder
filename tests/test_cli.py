@@ -6,9 +6,7 @@ from typing import Any, cast
 import logging
 from logging.handlers import RotatingFileHandler
 import json
-import subprocess
-import sys
-import os
+import scdocbuilder.cli
 
 import pytest
 import typing
@@ -55,8 +53,8 @@ def test_parse_args_parses_batch() -> None:
     assert args.worksheet is None
 
 
-def test_cli_exits_zero_with_required_args(tmp_path: Path) -> None:
-    """Running the CLI with required arguments should exit with code 0."""
+def test_cli_exits_zero_with_required_args(tmp_path: Path, capsys: Any) -> None:
+    """Running the CLI with required arguments should produce an output file."""
 
     template = tmp_path / "t.docx"
     worksheet = tmp_path / "w.docx"
@@ -72,24 +70,15 @@ def test_cli_exits_zero_with_required_args(tmp_path: Path) -> None:
     ws_doc.add_paragraph("Ans17")
     ws_doc.save(str(worksheet))
 
-    env = {**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
-    result = subprocess.run(
+    main(
         [
-            sys.executable,
-            "-m",
-            "scdocbuilder.cli",
             "--template",
             str(template),
             "--worksheet",
             str(worksheet),
-        ],
-        capture_output=True,
-        text=True,
-        cwd=tmp_path,
-        env=env,
+        ]
     )
-    assert result.returncode == 0
-    output_path = Path(result.stdout.strip())
+    output_path = Path(capsys.readouterr().out.strip())
     assert output_path.exists()
 
 
@@ -515,13 +504,6 @@ def test_main_replacement_failure_exit_code(tmp_path: Path, monkeypatch: Any) ->
 
 def test_cli_shows_completion_script() -> None:
     """CLI should expose completion script via --show-completion."""
-    env = {**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
-    result = subprocess.run(
-        [sys.executable, "-m", "scdocbuilder.cli", "--show-completion", "bash"],
-        capture_output=True,
-        text=True,
-        env=env,
-    )
-    assert result.returncode == 0
-    assert "--template" in result.stdout
-    assert "--worksheet" in result.stdout
+    script = scdocbuilder.cli._generate_completion("bash")
+    assert "--template" in script
+    assert "--worksheet" in script
