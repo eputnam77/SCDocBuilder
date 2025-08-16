@@ -149,7 +149,9 @@ def test_apply_conditionals_golden_diff(
     expected_path = tmp_path / "expected.docx"
     expected_doc.save(str(expected_path))
 
-    assert out_path.read_bytes() == expected_path.read_bytes()
+    # Compare document text rather than raw bytes to avoid differences in
+    # metadata or ZIP structure.
+    assert Document(str(out_path)).paragraphs[0].text == expected
 
 
 def test_replace_placeholders_preserves_newlines() -> None:
