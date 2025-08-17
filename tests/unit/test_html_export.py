@@ -2,7 +2,7 @@ import typing
 from typing import Any, Mapping
 import pytest
 import builtins
-import importlib
+import importlib.util
 
 if typing.TYPE_CHECKING:
     from docx import Document

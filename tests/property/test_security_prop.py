@@ -1,26 +1,24 @@
-from typing import Any, Callable, TypeVar, cast, no_type_check
-import typing
+from typing import Any, Callable, TYPE_CHECKING, cast, no_type_check
 from pathlib import Path
 
 import pytest
 from tests.property.strategies import docx_path
 from scdocbuilder.security import reject_macros, cleanup_uploads
 
-F = TypeVar("F", bound=Callable[..., Any])
+Decorator = Callable[[Callable[..., Any]], Callable[..., Any]]
 
-if typing.TYPE_CHECKING:
-    from hypothesis import given as given_decorator
+if TYPE_CHECKING:
+    from hypothesis import HealthCheck, given as given_decorator, settings
     from hypothesis import strategies as st
-    from hypothesis import settings, HealthCheck
 
-    property_mark: Callable[[F], F]
+    def property_mark(func: Callable[..., Any]) -> Callable[..., Any]: ...
 else:
     hypothesis = pytest.importorskip("hypothesis")
-    given_decorator = cast(Callable[[F], F], hypothesis.given)
+    given_decorator = cast(Decorator, hypothesis.given)
     st = hypothesis.strategies
     settings = hypothesis.settings
     HealthCheck = hypothesis.HealthCheck
-    property_mark = cast(Callable[[F], F], pytest.mark.property)
+    property_mark = cast(Decorator, pytest.mark.property)
 
 
 @no_type_check

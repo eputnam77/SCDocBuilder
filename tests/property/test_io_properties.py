@@ -1,28 +1,26 @@
-import typing
-from typing import Any, Callable, TypeVar, cast, no_type_check
+from typing import Any, Callable, TYPE_CHECKING, cast, no_type_check
 from pathlib import Path
 import pytest
 
-if not typing.TYPE_CHECKING:
+if not TYPE_CHECKING:
     pytest.importorskip("docx")
 
 from docx import Document
 from scdocbuilder.io import validate_input_files
 from tests.property.strategies import docx_path
 
-F = TypeVar("F", bound=Callable[..., Any])
+Decorator = Callable[[Callable[..., Any]], Callable[..., Any]]
 
-if typing.TYPE_CHECKING:
-    from hypothesis import given as given_decorator
-    from hypothesis import settings, HealthCheck
+if TYPE_CHECKING:
+    from hypothesis import HealthCheck, given as given_decorator, settings
 
-    property_mark: Callable[[F], F]
+    def property_mark(func: Callable[..., Any]) -> Callable[..., Any]: ...
 else:
     hypothesis = pytest.importorskip("hypothesis")
-    given_decorator = cast(Callable[[F], F], hypothesis.given)
+    given_decorator = cast(Decorator, hypothesis.given)
     settings = hypothesis.settings
     HealthCheck = hypothesis.HealthCheck
-    property_mark = cast(Callable[[F], F], pytest.mark.property)
+    property_mark = cast(Decorator, pytest.mark.property)
 
 
 @no_type_check
