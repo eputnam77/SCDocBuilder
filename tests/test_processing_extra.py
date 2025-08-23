@@ -84,6 +84,15 @@ def test_extract_fields_multiline_answer() -> None:
     assert fields["{Q15}"] == "Line1\nLine2"
 
 
+def test_extract_fields_prefers_longest_match() -> None:
+    """More specific field names should win over shorter prefixes."""
+    doc = Document()
+    doc.add_paragraph("A detail: Foo")
+    mappings = {"A:": "{A}", "A detail:": "{AD}"}
+    fields = processing.extract_fields(doc, mappings)
+    assert fields == {"{AD}": "Foo"}
+
+
 def test_replace_placeholders_full(monkeypatch: Any) -> None:
     doc = Document()
     doc.add_paragraph("{x}")
@@ -101,6 +110,15 @@ def test_replace_placeholders_full(monkeypatch: Any) -> None:
     texts += [table.cell(0, 0).text]
     texts += [p.text for p in processing._iter_textbox_paragraphs(doc.part)]
     assert texts.count("VAL") == 4
+
+
+def test_replace_placeholders_across_runs() -> None:
+    doc = Document()
+    p = doc.add_paragraph()
+    p.add_run("{na")
+    p.add_run("me}")
+    replace_placeholders(doc, {"{name}": "Alice"})
+    assert p.text == "Alice"
 
 
 def test_apply_conditionals_full(monkeypatch: Any) -> None:

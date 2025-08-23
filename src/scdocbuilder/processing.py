@@ -73,6 +73,13 @@ def extract_fields(
     if field_mappings is None:
         field_mappings = DEFAULT_FIELD_MAPPINGS
 
+    # Prefer longer keys first to avoid partial matches when one field name is a
+    # prefix of another ("A" vs. "A detail").  Iterate over the sorted mapping
+    # once so both paragraph scanning and multi-line termination checks use the
+    # same ordering.
+    items = sorted(field_mappings.items(), key=lambda kv: len(kv[0]), reverse=True)
+    fields = [field for field, _ in items]
+
     results: Dict[str, str] = {}
 
     def clean(text: str) -> str:
@@ -81,7 +88,7 @@ def extract_fields(
     paragraphs = list(doc.paragraphs)
     for i, paragraph in enumerate(paragraphs):
         text = paragraph.text.strip()
-        for field, placeholder in field_mappings.items():
+        for field, placeholder in items:
             if text.startswith(field):
                 value = text[len(field) :].strip()
                 if not value:
@@ -90,22 +97,24 @@ def extract_fields(
                     while j < len(paragraphs):
                         next_text = paragraphs[j].text.strip()
                         if not next_text or any(
-                            next_text.startswith(f) for f in field_mappings
+                            next_text.startswith(f) for f in fields
                         ):
                             break
                         lines.append(next_text)
                         j += 1
                     value = "\n".join(lines)
                 results[placeholder] = clean(value)
+                break
 
     for table in doc.tables:
         for row in table.rows:
             if len(row.cells) >= 2:
                 key = clean(row.cells[0].text)
-                for field, placeholder in field_mappings.items():
+                for field, placeholder in items:
                     if key.startswith(field):
                         value = clean(row.cells[1].text)
                         results[placeholder] = value
+                        break
 
     return results
 
@@ -119,10 +128,23 @@ def replace_placeholders(doc: Document, values: Dict[str, str]) -> None:
     """
 
     def process_paragraph(paragraph: Any) -> None:
+        # First replace placeholders that live entirely within individual runs so
+        # that we preserve existing formatting for those segments.
         for run in paragraph.runs:
             for placeholder, val in values.items():
                 if placeholder in run.text:
                     run.text = run.text.replace(placeholder, val)
+
+        # After the per-run replacements we may still have placeholders that span
+        # multiple runs. Join the paragraph text and perform a final replacement
+        # pass; if the combined text changes we rewrite the paragraph using the
+        # helper that removes all runs.
+        full_text = "".join(run.text for run in paragraph.runs)
+        replaced = full_text
+        for placeholder, val in values.items():
+            replaced = replaced.replace(placeholder, val)
+        if replaced != full_text:
+            _set_paragraph_text(paragraph, replaced)
 
     for paragraph in doc.paragraphs:
         process_paragraph(paragraph)
