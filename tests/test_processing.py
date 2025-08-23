@@ -65,3 +65,13 @@ def test_apply_conditionals_four_options() -> None:
     )
     apply_conditionals(doc, {"{Action option}": "2"})
     assert doc.paragraphs[0].text == "B"
+
+
+@pytest.mark.parametrize("choice, expected", [("10", "Ten"), ("2", "Two")])
+def test_apply_conditionals_multi_digit_option(choice: str, expected: str) -> None:
+    doc = Document()
+    doc.add_paragraph(
+        "[[OPTION_10]]Ten[[/OPTION_10]][[OPTION_2]]Two[[/OPTION_2]]"
+    )
+    apply_conditionals(doc, {"{Action option}": choice})
+    assert doc.paragraphs[0].text == expected

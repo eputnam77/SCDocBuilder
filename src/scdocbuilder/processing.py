@@ -20,7 +20,7 @@ DEFAULT_FIELD_MAPPINGS: Dict[str, str] = {
 }
 
 # Precompile regex used for conditional blocks once at module import
-OPTION_PATTERN = re.compile(r"\[\[OPTION_(\d)\]\](.*?)\[\[/OPTION_\1\]\]", re.DOTALL)
+OPTION_PATTERN = re.compile(r"\[\[OPTION_(\d+)\]\](.*?)\[\[/OPTION_\1\]\]", re.DOTALL)
 
 
 def _iter_textbox_paragraphs(part: Any) -> list[Paragraph]:

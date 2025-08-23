@@ -19,7 +19,7 @@ def reject_macros(path: Path) -> None:
     """
     if not path.exists():
         raise FileNotFoundError(str(path))
-    if path.suffix.lower() == ".docm":
+    if path.suffix.lower() in {".docm", ".dotm"}:
         raise ValueError("Macro-enabled documents are not allowed")
     with path.open("rb") as f:
         chunk = f.read(4096).lower()
