@@ -30,9 +30,7 @@ def _heading_level(paragraph: Any) -> int:
 
     candidates = [getattr(style, "name", ""), getattr(style, "style_id", "")]
     for cand in candidates:
-        match = re.search(
-            r"h(?:eading)?\s*([1-6])(?!\d)", str(cand), flags=re.IGNORECASE
-        )
+        match = re.search(r"h(?:eading)?\s*([1-6])\s*$", str(cand), flags=re.IGNORECASE)
         if match:
             return int(match.group(1))
     return 0
