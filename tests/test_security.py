@@ -21,3 +21,10 @@ def test_reject_macros_signature(tmp_path: Path) -> None:
     path.write_bytes(b"vbaProject")
     with pytest.raises(ValueError):
         reject_macros(path)
+
+
+def test_reject_macros_missing_file(tmp_path: Path) -> None:
+    """Missing files should raise ``FileNotFoundError`` even for .docm."""
+    path = tmp_path / "missing.docm"
+    with pytest.raises(FileNotFoundError):
+        reject_macros(path)
