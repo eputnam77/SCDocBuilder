@@ -23,7 +23,21 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
             continue
         if ":" in line:
             key, value = line.split(":", 1)
-            result[key.strip()] = value.strip().strip("'\"")
+            value = value.strip()
+
+            # Remove inline comments for unquoted values
+            if value and value[0] not in {'"', "'"}:
+                if "#" in value:
+                    value = value.split("#", 1)[0].rstrip()
+                value = value.strip("'\"")
+            else:
+                # Strip matching quotes for quoted values
+                if len(value) >= 2 and value[-1] == value[0]:
+                    value = value[1:-1]
+                else:
+                    value = value.strip("'\"")
+
+            result[key.strip()] = value
     return result
 
 

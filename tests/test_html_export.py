@@ -7,7 +7,7 @@ if not TYPE_CHECKING:
     pytest.importorskip("docx")
 from docx import Document
 
-from scdocbuilder.html_export import export_html
+from scdocbuilder.html_export import export_html, _heading_level
 
 
 def test_export_html_converts_headings_and_paragraphs() -> None:
@@ -49,3 +49,17 @@ def test_export_html_tiptap_ready() -> None:
     parser.feed(html)
     allowed = {"p", "h1", "h2", "h3", "ul", "ol", "li", "em", "strong", "a"}
     assert parser.tags <= allowed
+
+
+def test_heading_level_handles_short_names() -> None:
+    class Style:
+        def __init__(self, name: str) -> None:
+            self.name = name
+            self.style_id = name
+
+    class Paragraph:
+        def __init__(self, style: Style) -> None:
+            self.style = style
+
+    para = Paragraph(Style("h2"))
+    assert _heading_level(para) == 2

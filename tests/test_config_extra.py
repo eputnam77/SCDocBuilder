@@ -16,6 +16,13 @@ def test_load_placeholder_schema_yaml(tmp_path: Path) -> None:
     assert config.load_placeholder_schema(path) == {"A": "{a}"}
 
 
+def test_parse_simple_yaml_inline_comment() -> None:
+    text = "A: B # trailing" \
+        "\n# full-line\nC: 'D # not comment'"  # comment inside quotes
+    result = config._parse_simple_yaml(text)
+    assert result == {"A": "B", "C": "D # not comment"}
+
+
 def test_load_placeholder_schema_errors(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

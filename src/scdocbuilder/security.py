@@ -17,16 +17,15 @@ def reject_macros(path: Path) -> None:
         ValueError: If macros are detected.
         FileNotFoundError: If ``path`` does not exist.
     """
+    if not path.exists():
+        raise FileNotFoundError(str(path))
     if path.suffix.lower() == ".docm":
         raise ValueError("Macro-enabled documents are not allowed")
-    try:
-        with path.open("rb") as f:
-            chunk = f.read(4096)
-            for pattern in MACRO_PATTERNS:
-                if pattern in chunk:
-                    raise ValueError("Macro-enabled documents are not allowed")
-    except FileNotFoundError:
-        raise
+    with path.open("rb") as f:
+        chunk = f.read(4096)
+        for pattern in MACRO_PATTERNS:
+            if pattern in chunk:
+                raise ValueError("Macro-enabled documents are not allowed")
 
 
 def cleanup_uploads(*paths: Path) -> None:
