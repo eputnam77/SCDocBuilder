@@ -63,3 +63,17 @@ def test_heading_level_handles_short_names() -> None:
 
     para = Paragraph(Style("h2"))
     assert _heading_level(para) == 2
+
+
+def test_heading_level_ignores_heading_10() -> None:
+    class Style:
+        def __init__(self, name: str) -> None:
+            self.name = name
+            self.style_id = name
+
+    class Paragraph:
+        def __init__(self, style: Style) -> None:
+            self.style = style
+
+    para = Paragraph(Style("Heading 10"))
+    assert _heading_level(para) == 0

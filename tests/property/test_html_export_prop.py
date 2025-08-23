@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from hypothesis import strategies as st
 
     def property_mark(func: Callable[..., Any]) -> Callable[..., Any]: ...
+
 else:
     hypothesis = pytest.importorskip("hypothesis")
     given_decorator = cast(Decorator, hypothesis.given)

@@ -31,9 +31,18 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
                     value = value.split("#", 1)[0].rstrip()
                 value = value.strip("'\"")
             else:
-                # Strip matching quotes for quoted values
-                if len(value) >= 2 and value[-1] == value[0]:
-                    value = value[1:-1]
+                quote = value[0] if value else ""
+                if quote:
+                    end = value.find(quote, 1)
+                    if end != -1:
+                        raw = value[1:end]
+                        trailing = value[end + 1 :].lstrip()
+                        if trailing.startswith("#"):
+                            value = raw
+                        else:
+                            value = raw + trailing
+                    else:
+                        value = value.strip("'\"")
                 else:
                     value = value.strip("'\"")
 

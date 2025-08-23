@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from hypothesis import HealthCheck, given as given_decorator, settings
 
     def property_mark(func: Callable[..., Any]) -> Callable[..., Any]: ...
+
 else:
     pytest.importorskip("docx")
     from docx import Document

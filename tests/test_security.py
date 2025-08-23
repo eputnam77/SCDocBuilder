@@ -23,6 +23,13 @@ def test_reject_macros_signature(tmp_path: Path) -> None:
         reject_macros(path)
 
 
+def test_reject_macros_signature_case_insensitive(tmp_path: Path) -> None:
+    path = tmp_path / "file.docx"
+    path.write_bytes(b"VBAPROJECT")
+    with pytest.raises(ValueError):
+        reject_macros(path)
+
+
 def test_reject_macros_missing_file(tmp_path: Path) -> None:
     """Missing files should raise ``FileNotFoundError`` even for .docm."""
     path = tmp_path / "missing.docm"
