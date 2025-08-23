@@ -91,7 +91,7 @@ def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
         try:
             with path.open("r", encoding="utf-8") as f:
                 yaml_data: Any = yaml.safe_load(f)
-        except yaml.YAMLError as exc:  # type: ignore[attr-defined]
+        except yaml.YAMLError as exc:
             raise ValueError("Invalid YAML schema") from exc
         if not isinstance(yaml_data, dict):
             raise ValueError("Schema must be a mapping")
