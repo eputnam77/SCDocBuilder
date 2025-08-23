@@ -17,10 +17,17 @@ def test_load_placeholder_schema_yaml(tmp_path: Path) -> None:
 
 
 def test_parse_simple_yaml_inline_comment() -> None:
-    text = "A: B # trailing" \
-        "\n# full-line\nC: 'D # not comment'"  # comment inside quotes
+    text = (
+        "A: B # trailing" "\n# full-line\nC: 'D # not comment'"
+    )  # comment inside quotes
     result = config._parse_simple_yaml(text)
     assert result == {"A": "B", "C": "D # not comment"}
+
+
+def test_parse_simple_yaml_comment_after_quotes() -> None:
+    text = "A: 'B' # trailing comment\nB: \"C\" # another"
+    result = config._parse_simple_yaml(text)
+    assert result == {"A": "B", "B": "C"}
 
 
 def test_load_placeholder_schema_errors(

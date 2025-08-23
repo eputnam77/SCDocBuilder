@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-MACRO_PATTERNS = [b"vbaProject", b"macros"]
+MACRO_PATTERNS = [b"vbaproject", b"macros"]
 
 
 def reject_macros(path: Path) -> None:
@@ -22,7 +22,7 @@ def reject_macros(path: Path) -> None:
     if path.suffix.lower() == ".docm":
         raise ValueError("Macro-enabled documents are not allowed")
     with path.open("rb") as f:
-        chunk = f.read(4096)
+        chunk = f.read(4096).lower()
         for pattern in MACRO_PATTERNS:
             if pattern in chunk:
                 raise ValueError("Macro-enabled documents are not allowed")
