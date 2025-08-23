@@ -29,7 +29,7 @@ def _find_question_answer(paragraphs: list[str], index: int) -> str:
 
     if index + 1 < len(paragraphs):
         nxt = paragraphs[index + 1].strip()
-        if re.match(r"(Question\s+\d+|\d+\.)", nxt):
+        if re.match(r"(Question\s+\d+|\d+[.)-])", nxt):
             return ""
         return nxt
     return ""

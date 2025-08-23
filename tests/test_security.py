@@ -15,6 +15,14 @@ def test_reject_macros_docm_extension(tmp_path: Path) -> None:
         reject_macros(path)
 
 
+def test_reject_macros_dotm_extension(tmp_path: Path) -> None:
+    """Macro-enabled .dotm template files should be rejected."""
+    path = tmp_path / "file.dotm"
+    path.write_bytes(b"\0")
+    with pytest.raises(ValueError):
+        reject_macros(path)
+
+
 def test_reject_macros_signature(tmp_path: Path) -> None:
     """DOCX containing macro signatures should be rejected."""
     path = tmp_path / "file.docx"
