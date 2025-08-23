@@ -21,11 +21,16 @@ def reject_macros(path: Path) -> None:
         raise FileNotFoundError(str(path))
     if path.suffix.lower() in {".docm", ".dotm"}:
         raise ValueError("Macro-enabled documents are not allowed")
+
+    max_len = max(len(p) for p in MACRO_PATTERNS)
     with path.open("rb") as f:
-        chunk = f.read(4096).lower()
-        for pattern in MACRO_PATTERNS:
-            if pattern in chunk:
-                raise ValueError("Macro-enabled documents are not allowed")
+        tail = b""
+        for chunk in iter(lambda: f.read(4096), b""):
+            data = (tail + chunk).lower()
+            for pattern in MACRO_PATTERNS:
+                if pattern in data:
+                    raise ValueError("Macro-enabled documents are not allowed")
+            tail = data[-(max_len - 1) :]
 
 
 def cleanup_uploads(*paths: Path) -> None:

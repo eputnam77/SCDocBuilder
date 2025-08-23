@@ -77,3 +77,19 @@ def test_heading_level_ignores_heading_10() -> None:
 
     para = Paragraph(Style("Heading 10"))
     assert _heading_level(para) == 0
+
+
+def test_heading_level_ignores_character_styles() -> None:
+    class Style:
+        def __init__(self, name: str) -> None:
+            self.name = name
+            self.style_id = name
+
+    class Paragraph:
+        def __init__(self, style: Style) -> None:
+            self.style = style
+
+    para = Paragraph(Style("Heading1Char"))
+    assert _heading_level(para) == 0
+    para = Paragraph(Style("Heading 1 Char"))
+    assert _heading_level(para) == 0

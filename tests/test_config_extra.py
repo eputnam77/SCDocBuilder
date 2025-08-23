@@ -16,6 +16,12 @@ def test_load_placeholder_schema_yaml(tmp_path: Path) -> None:
     assert config.load_placeholder_schema(path) == {"A": "{a}"}
 
 
+def test_load_placeholder_schema_accepts_str_path(tmp_path: Path) -> None:
+    path = tmp_path / "schema.json"
+    path.write_text('{"A": "{a}"}')
+    assert config.load_placeholder_schema(str(path)) == {"A": "{a}"}
+
+
 def test_parse_simple_yaml_inline_comment() -> None:
     text = (
         "A: B # trailing" "\n# full-line\nC: 'D # not comment'"
@@ -54,3 +60,10 @@ def test_load_placeholder_schema_errors(
     monkeypatch.setattr(builtins, "__import__", fake_import)
     with pytest.raises(ImportError):
         config.load_placeholder_schema(yml)
+
+
+def test_load_placeholder_schema_requires_mapping(tmp_path: Path) -> None:
+    path = tmp_path / "schema.json"
+    path.write_text("[1, 2, 3]")
+    with pytest.raises(ValueError):
+        config.load_placeholder_schema(path)

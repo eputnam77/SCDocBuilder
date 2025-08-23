@@ -51,7 +51,7 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
 
 
 @lru_cache(maxsize=None)
-def load_placeholder_schema(path: Path) -> Dict[str, str]:
+def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
     """Load placeholder schema from a JSON or YAML file.
 
     Args:
@@ -63,25 +63,38 @@ def load_placeholder_schema(path: Path) -> Dict[str, str]:
     Raises:
         FileNotFoundError: If ``path`` does not exist.
         ImportError: If a YAML file is requested without ``PyYAML``.
-        ValueError: If the file extension is unsupported.
+        ValueError: If the file extension is unsupported or the file content is invalid.
     """
 
+    path = Path(path)
     if not path.exists():
         raise FileNotFoundError(str(path))
 
-    if path.suffix.lower() == ".json":
-        with path.open("r", encoding="utf-8") as f:
-            json_data: Any = json.load(f)
+    suffix = path.suffix.lower()
+    if suffix == ".json":
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                json_data: Any = json.load(f)
+        except json.JSONDecodeError as exc:
+            raise ValueError("Invalid JSON schema") from exc
+        if not isinstance(json_data, dict):
+            raise ValueError("Schema must be a mapping")
         return dict(json_data)
-    elif path.suffix.lower() in {".yaml", ".yml"}:
+
+    if suffix in {".yaml", ".yml"}:
         try:
             yaml = __import__("yaml")
         except ModuleNotFoundError:
             return _parse_simple_yaml(path.read_text(encoding="utf-8"))
         except ImportError as exc:
             raise ImportError("PyYAML is required for YAML files") from exc
-        with path.open("r", encoding="utf-8") as f:
-            yaml_data: Any = yaml.safe_load(f)
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                yaml_data: Any = yaml.safe_load(f)
+        except yaml.YAMLError as exc:  # type: ignore[attr-defined]
+            raise ValueError("Invalid YAML schema") from exc
+        if not isinstance(yaml_data, dict):
+            raise ValueError("Schema must be a mapping")
         return dict(yaml_data)
-    else:
-        raise ValueError("Unsupported schema format")
+
+    raise ValueError("Unsupported schema format")
