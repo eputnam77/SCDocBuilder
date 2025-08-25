@@ -132,6 +132,13 @@ def test_parse_simple_yaml_allows_brackets_in_quotes() -> None:
     assert config._parse_simple_yaml(text) == {"A": "[1,"}
 
 
+def test_parse_simple_yaml_rejects_misordered_brackets() -> None:
+    """Misordered brackets in unquoted values should be rejected."""
+    text = "A: ]1["
+    with pytest.raises(ValueError):
+        config._parse_simple_yaml(text)
+
+
 def test_load_placeholder_schema_reloads_on_change(tmp_path: Path) -> None:
     path = tmp_path / "schema.json"
     path.write_text('{"A": "x"}')
