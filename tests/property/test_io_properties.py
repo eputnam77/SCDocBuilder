@@ -5,6 +5,8 @@ import pytest
 if not TYPE_CHECKING:
     pytest.importorskip("docx")
 
+from io import BytesIO
+
 from docx import Document
 from scdocbuilder.io import validate_input_files
 from tests.property.strategies import docx_path
@@ -24,6 +26,14 @@ else:
     property_mark = cast(Decorator, pytest.mark.property)
 
 
+# Pre-generate minimal DOCX bytes once to avoid per-example Document writes,
+# which were slow enough to trip Hypothesis' default deadline. Writing bytes is
+# much faster and still exercises `validate_input_files` with real DOCX data.
+_buf = BytesIO()
+Document().save(_buf)
+DOCX_BYTES = _buf.getvalue()
+
+
 @no_type_check
 @property_mark
 @settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
@@ -35,8 +45,8 @@ def test_validate_input_files_accepts_paths(
 
     t = tmp_path / template.name
     w = tmp_path / worksheet.name
-    Document().save(str(t))
-    Document().save(str(w))
+    t.write_bytes(DOCX_BYTES)
+    w.write_bytes(DOCX_BYTES)
 
     validate_input_files(t, w)
 
