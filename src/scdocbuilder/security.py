@@ -42,5 +42,6 @@ def cleanup_uploads(*paths: Path) -> None:
     for p in paths:
         try:
             p.unlink()
-        except FileNotFoundError:
+        except (FileNotFoundError, IsADirectoryError):
+            # Ignore missing files and directories to make cleanup idempotent
             pass

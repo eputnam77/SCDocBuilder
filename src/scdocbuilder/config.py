@@ -42,7 +42,7 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
                         else:
                             value = raw + trailing
                     else:
-                        value = value.strip("'\"")
+                        raise ValueError("Unclosed quote in YAML value")
                 else:
                     value = value.strip("'\"")
 

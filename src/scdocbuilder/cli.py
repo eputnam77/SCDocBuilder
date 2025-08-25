@@ -108,7 +108,11 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
 
     if args.show_completion:
-        print(_generate_completion(args.show_completion))
+        try:
+            print(_generate_completion(args.show_completion))
+        except ValueError as exc:
+            logging.error(str(exc))
+            sys.exit(ErrorCode.EVALID)
         return
 
     handlers: list[logging.Handler] = [

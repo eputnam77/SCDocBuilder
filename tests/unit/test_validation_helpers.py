@@ -8,3 +8,8 @@ def test_find_question_answer_recognises_alternate_question_formats(
 ) -> None:
     paragraphs = ["Question 1:", next_para]
     assert _find_question_answer(paragraphs, 0) == ""
+
+
+def test_find_question_answer_same_line() -> None:
+    paragraphs = ["Question 1: yes"]
+    assert _find_question_answer(paragraphs, 0) == "yes"

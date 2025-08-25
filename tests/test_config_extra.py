@@ -67,3 +67,49 @@ def test_load_placeholder_schema_requires_mapping(tmp_path: Path) -> None:
     path.write_text("[1, 2, 3]")
     with pytest.raises(ValueError):
         config.load_placeholder_schema(path)
+
+
+def test_load_placeholder_schema_invalid_json(tmp_path: Path) -> None:
+    path = tmp_path / "bad.json"
+    path.write_text("{invalid}")
+    with pytest.raises(ValueError):
+        config.load_placeholder_schema(path)
+
+
+def test_load_placeholder_schema_invalid_yaml(tmp_path: Path) -> None:
+    path = tmp_path / "bad.yml"
+    path.write_text("A: [1,")
+    with pytest.raises(ValueError):
+        config.load_placeholder_schema(path)
+
+
+def test_load_placeholder_schema_yaml_non_mapping(tmp_path: Path) -> None:
+    path = tmp_path / "list.yml"
+    path.write_text("- a\n- b")
+    with pytest.raises(ValueError):
+        config.load_placeholder_schema(path)
+
+
+def test_parse_simple_yaml_unclosed_quote() -> None:
+    with pytest.raises(ValueError):
+        config._parse_simple_yaml("A: 'B")
+
+
+def test_parse_simple_yaml_empty_value() -> None:
+    assert config._parse_simple_yaml("A:") == {"A": ""}
+
+
+def test_load_placeholder_schema_yaml_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    yml = tmp_path / "f.yml"
+    yml.write_text("A: B")
+    orig_import = __import__
+
+    def fake_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "yaml":
+            raise ModuleNotFoundError
+        return orig_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    assert config.load_placeholder_schema(yml) == {"A": "B"}
