@@ -59,3 +59,15 @@ def test_cleanup_uploads_ignores_missing_and_dirs(tmp_path: Path) -> None:
     directory.mkdir()
     cleanup_uploads(missing, directory)
     assert directory.exists()
+
+
+def test_cleanup_uploads_handles_permission_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    file_path = tmp_path / "file.docx"
+    file_path.write_text("x")
+
+    def fake_unlink(self: Path) -> None:
+        raise PermissionError
+
+    monkeypatch.setattr(Path, "unlink", fake_unlink)
+    # Should not raise even if unlink reports a permission problem
+    cleanup_uploads(file_path)

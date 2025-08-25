@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from docx import Document
@@ -40,3 +40,20 @@ def test_validate_input_files_rejects_large_file(tmp_path: Path) -> None:
     big.write_bytes(b"0" * (11 * 1024 * 1024))
     with pytest.raises(ValueError):
         validate_input_files(big, big)
+
+
+def test_validate_input_files_magic_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Errors from libmagic should not surface to callers."""
+    t = tmp_path / "t.docx"
+    w = tmp_path / "w.docx"
+    Document().save(str(t))
+    Document().save(str(w))
+
+    import types, sys
+
+    def fake_from_buffer(*args: Any, **kwargs: Any) -> str:
+        raise OSError("missing magic database")
+
+    fake_magic = types.SimpleNamespace(from_buffer=fake_from_buffer)
+    monkeypatch.setitem(sys.modules, "magic", fake_magic)
+    validate_input_files(t, w)

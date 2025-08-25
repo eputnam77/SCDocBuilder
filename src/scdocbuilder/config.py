@@ -61,9 +61,16 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
             # behaviour when malformed files were provided.  Quoted values are
             # exempt because their bracket characters are literal.
             if not quoted:
-                for open_b, close_b in (("[", "]"), ("{", "}"), ("(", ")")):
-                    if value.count(open_b) != value.count(close_b):
-                        raise ValueError("Unbalanced brackets in YAML value")
+                pairs = {"[": "]", "{": "}", "(": ")"}
+                stack: list[str] = []
+                for ch in value:
+                    if ch in pairs:
+                        stack.append(pairs[ch])
+                    elif ch in pairs.values():
+                        if not stack or ch != stack.pop():
+                            raise ValueError("Unbalanced brackets in YAML value")
+                if stack:
+                    raise ValueError("Unbalanced brackets in YAML value")
 
             result[key.strip()] = value
         else:

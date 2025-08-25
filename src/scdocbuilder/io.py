@@ -38,7 +38,10 @@ def validate_input_files(template: Path, worksheet: Path) -> None:
                 import magic
 
                 mime = magic.from_buffer(head, mime=True)
-            except (ImportError, AttributeError):
+            except (ImportError, AttributeError, OSError):
+                # Some environments provide the ``magic`` module but lack the
+                # underlying libmagic data files. Treat such errors as a missing
+                # dependency and proceed without MIME verification.
                 pass
             else:
                 if mime != DOCX_MIME:
