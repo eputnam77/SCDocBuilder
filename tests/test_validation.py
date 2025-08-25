@@ -9,6 +9,7 @@ else:
     from docx import Document
 
 from scdocbuilder import fill_template
+from scdocbuilder import validation
 
 
 def _make_template(path: Path) -> None:
@@ -68,3 +69,16 @@ def test_missing_question_triggers_error(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError):
         fill_template(template, worksheet, tmp_path / "out.docx")
+
+
+def test_numbered_answer_is_accepted(tmp_path: Path) -> None:
+    """Answers starting with enumerated bullets should not be treated as new questions."""
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.add_paragraph("Airplane model: Bar")
+    ws.add_paragraph("Question 15:")
+    ws.add_paragraph("1) Step one")
+    ws.add_paragraph("Question 16: Ans16")
+    ws.add_paragraph("Question 17: Ans17")
+    # Should not raise
+    validation.validate_mandatory_fields(ws)

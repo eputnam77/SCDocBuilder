@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any, Dict
-from functools import lru_cache
 
 
 def _parse_simple_yaml(text: str) -> Dict[str, str]:
@@ -25,10 +24,16 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
             key, value = line.split(":", 1)
             value = value.strip()
 
-            # Remove inline comments for unquoted values
+            # Remove inline comments for unquoted values.  YAML only treats "#"
+            # as a comment start when it is preceded by whitespace.  The previous
+            # implementation discarded everything after the first "#" regardless
+            # of context which meant values like ``url#fragment`` were truncated.
+            # Honour the whitespace rule to keep hashes that are part of the
+            # actual value.
             if value and value[0] not in {'"', "'"}:
-                if "#" in value:
-                    value = value.split("#", 1)[0].rstrip()
+                hash_idx = value.find("#")
+                if hash_idx != -1 and (hash_idx == 0 or value[hash_idx - 1].isspace()):
+                    value = value[:hash_idx].rstrip()
                 value = value.strip("'\"")
             else:
                 quote = value[0] if value else ""
@@ -50,7 +55,6 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
     return result
 
 
-@lru_cache(maxsize=None)
 def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
     """Load placeholder schema from a JSON or YAML file.
 

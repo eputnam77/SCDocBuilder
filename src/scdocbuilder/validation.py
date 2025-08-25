@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from docx.document import Document
 
 from .processing import extract_fields
@@ -29,8 +28,21 @@ def _find_question_answer(paragraphs: list[str], index: int) -> str:
 
     if index + 1 < len(paragraphs):
         nxt = paragraphs[index + 1].strip()
-        if re.match(r"(Question\s+\d+|\d+[.)-])", nxt):
-            return ""
+        # A previous implementation used a permissive regular expression which
+        # flagged any line starting with ``\d+.`` or ``\d+)`` as a question. In
+        # real worksheets answers often begin with enumerated bullet points such
+        # as ``"1) first"``. Those were incorrectly treated as new questions and
+        # caused spurious ``Question X answer missing`` errors.  Restrict the
+        # detection to the known mandatory question numbers instead of any
+        # leading digits so numbered answer paragraphs are accepted.
+        for q in MANDATORY_QUESTIONS:
+            if (
+                nxt.startswith(f"Question {q}")
+                or nxt.startswith(f"{q}.")
+                or nxt.startswith(f"{q})")
+                or nxt.startswith(f"{q}-")
+            ):
+                return ""
         return nxt
     return ""
 
