@@ -42,10 +42,18 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
                     if end != -1:
                         raw = value[1:end]
                         trailing = value[end + 1 :].lstrip()
-                        if trailing.startswith("#"):
+                        if trailing.startswith("#") or not trailing:
                             value = raw
                         else:
-                            value = raw + trailing
+                            # Any non-comment content after a quoted value is
+                            # invalid YAML.  The previous implementation
+                            # silently concatenated the trailing text which
+                            # produced surprising results such as
+                            # ``A: "B"C`` parsing to ``BC``.  Treat these cases
+                            # as errors instead.
+                            raise ValueError(
+                                "Trailing characters after quoted YAML value"
+                            )
                     else:
                         raise ValueError("Unclosed quote in YAML value")
                 else:

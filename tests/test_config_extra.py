@@ -95,6 +95,12 @@ def test_parse_simple_yaml_unclosed_quote() -> None:
         config._parse_simple_yaml("A: 'B")
 
 
+def test_parse_simple_yaml_trailing_garbage_after_quotes() -> None:
+    """Quoted values may only be followed by whitespace or comments."""
+    with pytest.raises(ValueError):
+        config._parse_simple_yaml("A: 'B' C")
+
+
 def test_parse_simple_yaml_empty_value() -> None:
     assert config._parse_simple_yaml("A:") == {"A": ""}
 
