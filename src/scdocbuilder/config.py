@@ -24,48 +24,46 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
             key, value = line.split(":", 1)
             value = value.strip()
 
+            quoted = bool(value and value[0] in {'"', "'"})
             # Remove inline comments for unquoted values.  YAML only treats "#"
             # as a comment start when it is preceded by whitespace.  The previous
             # implementation discarded everything after the first "#" regardless
             # of context which meant values like ``url#fragment`` were truncated.
             # Honour the whitespace rule to keep hashes that are part of the
             # actual value.
-            if value and value[0] not in {'"', "'"}:
+            if not quoted:
                 hash_idx = value.find("#")
                 if hash_idx != -1 and (hash_idx == 0 or value[hash_idx - 1].isspace()):
                     value = value[:hash_idx].rstrip()
                 value = value.strip("'\"")
             else:
-                quote = value[0] if value else ""
-                if quote:
-                    end = value.find(quote, 1)
-                    if end != -1:
-                        raw = value[1:end]
-                        trailing = value[end + 1 :].lstrip()
-                        if trailing.startswith("#") or not trailing:
-                            value = raw
-                        else:
-                            # Any non-comment content after a quoted value is
-                            # invalid YAML.  The previous implementation
-                            # silently concatenated the trailing text which
-                            # produced surprising results such as
-                            # ``A: "B"C`` parsing to ``BC``.  Treat these cases
-                            # as errors instead.
-                            raise ValueError(
-                                "Trailing characters after quoted YAML value"
-                            )
+                quote = value[0]
+                end = value.find(quote, 1)
+                if end != -1:
+                    raw = value[1:end]
+                    trailing = value[end + 1 :].lstrip()
+                    if trailing.startswith("#") or not trailing:
+                        value = raw
                     else:
-                        raise ValueError("Unclosed quote in YAML value")
+                        # Any non-comment content after a quoted value is
+                        # invalid YAML.  The previous implementation
+                        # silently concatenated the trailing text which
+                        # produced surprising results such as
+                        # ``A: "B"C`` parsing to ``BC``.  Treat these cases
+                        # as errors instead.
+                        raise ValueError("Trailing characters after quoted YAML value")
                 else:
-                    value = value.strip("'\"")
+                    raise ValueError("Unclosed quote in YAML value")
 
             # Basic sanity check: if the value contains unmatched brackets or
             # braces (e.g. ``[1,``) treat it as invalid YAML.  The previous
             # implementation silently accepted such tokens, leading to confusing
-            # behaviour when malformed files were provided.
-            for open_b, close_b in (("[", "]"), ("{", "}"), ("(", ")")):
-                if value.count(open_b) != value.count(close_b):
-                    raise ValueError("Unbalanced brackets in YAML value")
+            # behaviour when malformed files were provided.  Quoted values are
+            # exempt because their bracket characters are literal.
+            if not quoted:
+                for open_b, close_b in (("[", "]"), ("{", "}"), ("(", ")")):
+                    if value.count(open_b) != value.count(close_b):
+                        raise ValueError("Unbalanced brackets in YAML value")
 
             result[key.strip()] = value
         else:

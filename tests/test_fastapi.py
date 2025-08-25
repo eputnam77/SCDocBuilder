@@ -1,25 +1,35 @@
-import pytest
+import asyncio
+import sys
+import types
+import typing
 from pathlib import Path
-import pytest
-from pathlib import Path
+
 from docx import Document
 from fastapi import UploadFile
-import asyncio
+from fastapi.responses import FileResponse
 
-# FastAPI requires the optional "python-multipart" or legacy "multipart"
-# packages for form parsing.  Create lightweight stubs so the API module can be
-# imported without these optional dependencies.
-import types, sys
 
-sys.modules.setdefault("python_multipart", types.ModuleType("python_multipart"))
-sys.modules["python_multipart"].__version__ = "1.0.0"
+def _load_api() -> types.ModuleType:
+    """Import the FastAPI module after installing lightweight stubs."""
+    sys.modules.setdefault("python_multipart", types.ModuleType("python_multipart"))
+    setattr(sys.modules["python_multipart"], "__version__", "1.0.0")
 
-sys.modules.setdefault("multipart", types.ModuleType("multipart"))
-sys.modules.setdefault("multipart.multipart", types.ModuleType("multipart.multipart"))
-sys.modules["multipart"].__version__ = "1.0.0"
-sys.modules["multipart.multipart"].parse_options_header = lambda *a, **k: None
+    sys.modules.setdefault("multipart", types.ModuleType("multipart"))
+    sys.modules.setdefault(
+        "multipart.multipart", types.ModuleType("multipart.multipart")
+    )
+    setattr(sys.modules["multipart"], "__version__", "1.0.0")
+    setattr(
+        sys.modules["multipart.multipart"],
+        "parse_options_header",
+        lambda *a, **k: None,
+    )
+    from scdocbuilder import api as _api
 
-from scdocbuilder import api
+    return _api
+
+
+api = _load_api()
 
 
 def _make_docs(tmp_path: Path) -> tuple[Path, Path]:
@@ -50,7 +60,8 @@ def test_generate_endpoint_returns_doc(tmp_path: Path) -> None:
     template, worksheet = _make_docs(tmp_path)
     resp = asyncio.run(api.generate(_upload(template), _upload(worksheet)))
     assert resp.status_code == 200
-    data = Path(resp.path).read_bytes()
+    file_resp = typing.cast(FileResponse, resp)
+    data = Path(file_resp.path).read_bytes()
     assert data.startswith(b"PK")
 
 

@@ -65,7 +65,12 @@ def validate_mandatory_fields(doc: Document) -> None:
     texts = [p.text.strip() for p in doc.paragraphs]
     for q in MANDATORY_QUESTIONS:
         for idx, text in enumerate(texts):
-            if text.startswith(f"Question {q}") or text.startswith(f"{q}."):
+            if (
+                text.startswith(f"Question {q}")
+                or text.startswith(f"{q}.")
+                or text.startswith(f"{q})")
+                or text.startswith(f"{q}-")
+            ):
                 answer = _find_question_answer(texts, idx)
                 if not answer:
                     raise ValueError(f"Question {q} answer missing")
