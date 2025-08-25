@@ -51,7 +51,20 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
                 else:
                     value = value.strip("'\"")
 
+            # Basic sanity check: if the value contains unmatched brackets or
+            # braces (e.g. ``[1,``) treat it as invalid YAML.  The previous
+            # implementation silently accepted such tokens, leading to confusing
+            # behaviour when malformed files were provided.
+            for open_b, close_b in (("[", "]"), ("{", "}"), ("(", ")")):
+                if value.count(open_b) != value.count(close_b):
+                    raise ValueError("Unbalanced brackets in YAML value")
+
             result[key.strip()] = value
+        else:
+            # Any non-comment, non-empty line without a colon indicates the file
+            # is not a simple key/value mapping.  Reject it to mirror YAML's
+            # behaviour instead of silently ignoring data.
+            raise ValueError("Schema must be a mapping")
     return result
 
 
