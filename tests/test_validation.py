@@ -51,3 +51,20 @@ def test_next_question_not_used_as_answer(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError):
         fill_template(template, worksheet, tmp_path / "out.docx")
+
+
+def test_missing_question_triggers_error(tmp_path: Path) -> None:
+    template = tmp_path / "t.docx"
+    worksheet = tmp_path / "w.docx"
+    _make_template(template)
+
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.add_paragraph("Airplane model: Bar")
+    ws.add_paragraph("Question 15: Ans15")
+    # Question 16 entirely absent
+    ws.add_paragraph("Question 17: Ans17")
+    ws.save(str(worksheet))
+
+    with pytest.raises(ValueError):
+        fill_template(template, worksheet, tmp_path / "out.docx")

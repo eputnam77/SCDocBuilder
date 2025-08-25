@@ -6,6 +6,8 @@ from typing import Any, cast
 import logging
 from logging.handlers import RotatingFileHandler
 import json
+import runpy
+import sys
 import scdocbuilder.cli
 
 import pytest
@@ -36,6 +38,54 @@ def test_parse_args_parses_required() -> None:
     assert args.worksheet == "w.docx"
     assert args.dry_run is True
     assert args.log_level == "DEBUG"
+
+
+def test_parse_args_requires_template() -> None:
+    with pytest.raises(SystemExit):
+        parse_args(["--worksheet", "w.docx"])
+
+
+def test_parse_args_requires_input() -> None:
+    with pytest.raises(SystemExit):
+        parse_args(["--template", "t.docx"])
+
+
+def test_parse_args_allows_show_completion_without_required() -> None:
+    args = parse_args(["--show-completion"])
+    assert args.show_completion == "bash"
+
+
+def test_generate_completion_invalid_shell() -> None:
+    with pytest.raises(ValueError):
+        scdocbuilder.cli._generate_completion("fish")
+
+
+def test_main_show_completion_invalid_shell() -> None:
+    with pytest.raises(SystemExit) as exc:
+        main(["--show-completion", "fish"])
+    assert exc.value.code == ErrorCode.EVALID
+
+
+def test_main_show_completion_prints(capsys: Any) -> None:
+    main(["--show-completion"])
+    out, err = capsys.readouterr()
+    assert "scdocbuilder" in out
+
+
+def test_main_batch_missing_directory(tmp_path: Path) -> None:
+    template = tmp_path / "t.docx"
+    Document().save(str(template))
+    missing = tmp_path / "missing"
+    with pytest.raises(SystemExit) as exc:
+        main(["--template", str(template), "--batch", str(missing)])
+    assert exc.value.code == ErrorCode.ENOFILE
+
+
+def test_cli_module_entrypoint(monkeypatch: pytest.MonkeyPatch, capsys: Any) -> None:
+    monkeypatch.setattr(sys, "argv", ["scdocbuilder.cli", "--show-completion"])
+    runpy.run_module("scdocbuilder.cli", run_name="__main__")
+    out, _ = capsys.readouterr()
+    assert "scdocbuilder" in out
 
 
 def test_parse_args_parses_batch() -> None:

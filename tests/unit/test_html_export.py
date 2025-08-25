@@ -58,6 +58,47 @@ def test_export_html_produces_heading_tags_fallback(
     assert "<h5>Title</h5>" in html
 
 
+def test_export_html_fallback_paragraph(monkeypatch: pytest.MonkeyPatch) -> None:
+    original_import = builtins.__import__
+
+    def fake_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name in {"mammoth", "bleach"}:
+            raise ImportError
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    doc = Document()
+    doc.add_paragraph("plain")
+    html = export_html(doc)
+    assert "<p>plain</p>" in html
+
+
+def test_render_runs_formats_text() -> None:
+    from scdocbuilder.html_export import _render_runs
+
+    class Run:
+        def __init__(self, text: str, bold: bool = False, italic: bool = False) -> None:
+            self.text = text
+            self.bold = bold
+            self.italic = italic
+
+    class Para:
+        runs = [Run("a", bold=True), Run("b", italic=True)]
+
+    assert _render_runs(Para()) == "<strong>a</strong><em>b</em>"
+
+
+def test_heading_level_no_style() -> None:
+    from scdocbuilder.html_export import _heading_level
+
+    class Para:
+        runs: list[Any] = []
+        style = None
+
+    assert _heading_level(Para()) == 0
+
+
 @pytest.mark.skipif(not LIBS_AVAILABLE, reason="mammoth/bleach not installed")
 def test_export_html_produces_heading_tags_with_libs() -> None:
     doc = Document()

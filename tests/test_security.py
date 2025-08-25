@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from scdocbuilder.security import reject_macros
+from scdocbuilder.security import reject_macros, cleanup_uploads
 
 
 def test_reject_macros_docm_extension(tmp_path: Path) -> None:
@@ -51,3 +51,11 @@ def test_reject_macros_scans_entire_file(tmp_path: Path) -> None:
     path.write_bytes(b"A" * 5000 + b"vbaProject")
     with pytest.raises(ValueError):
         reject_macros(path)
+
+
+def test_cleanup_uploads_ignores_missing_and_dirs(tmp_path: Path) -> None:
+    missing = tmp_path / "missing.docx"
+    directory = tmp_path / "dir"
+    directory.mkdir()
+    cleanup_uploads(missing, directory)
+    assert directory.exists()

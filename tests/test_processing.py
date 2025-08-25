@@ -28,6 +28,16 @@ def test_extract_fields() -> None:
     assert fields["{Applicant name}"] == "Foo"
 
 
+def test_extract_fields_multiline_answer() -> None:
+    doc = Document()
+    doc.add_paragraph("Applicant name:")
+    doc.add_paragraph("Line1")
+    doc.add_paragraph("Line2")
+    doc.add_paragraph("Airplane model: A")
+    fields = extract_fields(doc)
+    assert fields["{Applicant name}"] == "Line1\nLine2"
+
+
 def test_replace_placeholders(tmp_path: Path) -> None:
     path = tmp_path / "t.docx"
     _make_template(path)
