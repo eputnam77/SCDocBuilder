@@ -126,6 +126,12 @@ def test_parse_simple_yaml_hash_in_value() -> None:
     assert config._parse_simple_yaml(text) == {"A": "value#1"}
 
 
+def test_parse_simple_yaml_allows_brackets_in_quotes() -> None:
+    """Quoted values may legitimately contain unmatched brackets."""
+    text = "A: '[1,'"
+    assert config._parse_simple_yaml(text) == {"A": "[1,"}
+
+
 def test_load_placeholder_schema_reloads_on_change(tmp_path: Path) -> None:
     path = tmp_path / "schema.json"
     path.write_text('{"A": "x"}')

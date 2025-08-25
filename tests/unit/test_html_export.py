@@ -47,7 +47,7 @@ def test_export_html_produces_heading_tags_fallback(
         level: int = 0,
     ) -> Any:
         if name in {"mammoth", "bleach"}:
-            raise ImportError
+            raise ModuleNotFoundError
         return original_import(name, globals, locals, fromlist, level)
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
@@ -63,7 +63,7 @@ def test_export_html_fallback_paragraph(monkeypatch: pytest.MonkeyPatch) -> None
 
     def fake_import(name: str, *args: Any, **kwargs: Any) -> Any:
         if name in {"mammoth", "bleach"}:
-            raise ImportError
+            raise ModuleNotFoundError
         return original_import(name, *args, **kwargs)
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
@@ -90,6 +90,25 @@ def test_export_html_propagates_non_import_error(
     doc = Document()
     doc.add_paragraph("plain")
     with pytest.raises(RuntimeError):
+        export_html(doc)
+
+
+def test_export_html_propagates_import_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unexpected ImportError should not trigger the fallback renderer."""
+    original_import = builtins.__import__
+
+    def fake_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "mammoth":
+            raise ImportError("boom")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    doc = Document()
+    doc.add_paragraph("plain")
+    with pytest.raises(ImportError):
         export_html(doc)
 
 

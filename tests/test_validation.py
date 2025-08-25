@@ -82,3 +82,18 @@ def test_numbered_answer_is_accepted(tmp_path: Path) -> None:
     ws.add_paragraph("Question 17: Ans17")
     # Should not raise
     validation.validate_mandatory_fields(ws)
+
+
+def test_question_prompt_variants_are_detected() -> None:
+    """Questions formatted as "15)" or "16-" should still be recognised."""
+    ws = Document()
+    ws.add_paragraph("Applicant name: Foo")
+    ws.add_paragraph("Airplane model: Bar")
+    ws.add_paragraph("15) Prompt")
+    ws.add_paragraph("Ans15")
+    ws.add_paragraph("16- Prompt")
+    ws.add_paragraph("Ans16")
+    ws.add_paragraph("Question 17:")
+    ws.add_paragraph("Ans17")
+    # Should not raise
+    validation.validate_mandatory_fields(ws)

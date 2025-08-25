@@ -50,7 +50,7 @@ def export_html(doc: Document) -> str:
     try:
         import mammoth
         import bleach
-    except ImportError:
+    except ModuleNotFoundError:
         # Only fall back to the minimal renderer when the optional dependencies
         # are missing.  Other exceptions during import (e.g. syntax errors)
         # should surface to the caller instead of being silently swallowed which
