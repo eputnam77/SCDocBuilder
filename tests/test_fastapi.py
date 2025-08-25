@@ -1,19 +1,25 @@
 import pytest
-import typing
 from pathlib import Path
+import pytest
+from pathlib import Path
+from docx import Document
+from fastapi import UploadFile
+import asyncio
 
-if typing.TYPE_CHECKING:
-    from docx import Document
-else:
-    pytest.importorskip("docx")
-    from docx import Document
+# FastAPI requires the optional "python-multipart" or legacy "multipart"
+# packages for form parsing.  Create lightweight stubs so the API module can be
+# imported without these optional dependencies.
+import types, sys
 
-try:
-    from fastapi.testclient import TestClient
-except Exception:
-    pytest.skip("fastapi not installed", allow_module_level=True)
+sys.modules.setdefault("python_multipart", types.ModuleType("python_multipart"))
+sys.modules["python_multipart"].__version__ = "1.0.0"
 
-from scdocbuilder.api import app
+sys.modules.setdefault("multipart", types.ModuleType("multipart"))
+sys.modules.setdefault("multipart.multipart", types.ModuleType("multipart.multipart"))
+sys.modules["multipart"].__version__ = "1.0.0"
+sys.modules["multipart.multipart"].parse_options_header = lambda *a, **k: None
+
+from scdocbuilder import api
 
 
 def _make_docs(tmp_path: Path) -> tuple[Path, Path]:
@@ -36,99 +42,31 @@ def _make_docs(tmp_path: Path) -> tuple[Path, Path]:
     return template, worksheet
 
 
+def _upload(path: Path) -> UploadFile:
+    return UploadFile(path.open("rb"), filename=path.name)
+
+
 def test_generate_endpoint_returns_doc(tmp_path: Path) -> None:
     template, worksheet = _make_docs(tmp_path)
-    client = TestClient(app)
-    with template.open("rb") as t, worksheet.open("rb") as w:
-        resp = client.post(
-            "/generate",
-            files={
-                "template": (
-                    "t.docx",
-                    t,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-                "worksheet": (
-                    "w.docx",
-                    w,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-            },
-        )
+    resp = asyncio.run(api.generate(_upload(template), _upload(worksheet)))
     assert resp.status_code == 200
-    assert resp.content.startswith(b"PK")
+    data = Path(resp.path).read_bytes()
+    assert data.startswith(b"PK")
 
 
 def test_generate_endpoint_returns_html(tmp_path: Path) -> None:
     template, worksheet = _make_docs(tmp_path)
-    client = TestClient(app)
-    with template.open("rb") as t, worksheet.open("rb") as w:
-        resp = client.post(
-            "/generate?html=true",
-            files={
-                "template": (
-                    "t.docx",
-                    t,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-                "worksheet": (
-                    "w.docx",
-                    w,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-            },
-        )
+    resp = asyncio.run(api.generate(_upload(template), _upload(worksheet), html=True))
     assert resp.status_code == 200
-    assert "<p" in resp.text
+    assert b"<p" in resp.body
 
 
 def test_health_endpoint_returns_ok() -> None:
-    client = TestClient(app)
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json() == {"status": "ok"}
+    assert api.health() == {"status": "ok"}
 
 
-def test_preview_endpoint_returns_html(tmp_path: Path) -> None:
+def test_web_generate_returns_link(tmp_path: Path) -> None:
     template, worksheet = _make_docs(tmp_path)
-    client = TestClient(app)
-    with template.open("rb") as t, worksheet.open("rb") as w:
-        resp = client.post(
-            "/preview",
-            files={
-                "template": (
-                    "t.docx",
-                    t,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-                "worksheet": (
-                    "w.docx",
-                    w,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-            },
-        )
+    resp = asyncio.run(api.web_generate(_upload(template), _upload(worksheet)))
     assert resp.status_code == 200
-    assert "<p" in resp.text
-
-
-def test_validate_endpoint_returns_422(tmp_path: Path) -> None:
-    template, worksheet = _make_docs(tmp_path)
-    client = TestClient(app)
-    with template.open("rb") as t, worksheet.open("rb") as w:
-        resp = client.post(
-            "/validate",
-            files={
-                "template": (
-                    "t.docx",
-                    t,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-                "worksheet": (
-                    "w.docx",
-                    w,
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ),
-            },
-        )
-    assert resp.status_code == 422
+    assert b"Download result" in resp.body

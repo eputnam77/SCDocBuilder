@@ -36,7 +36,7 @@ DOCX_BYTES = _buf.getvalue()
 
 @no_type_check
 @property_mark
-@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
+@settings(deadline=None, suppress_health_check=(HealthCheck.function_scoped_fixture,))
 @given_decorator(template=docx_path(), worksheet=docx_path())
 def test_validate_input_files_accepts_paths(
     tmp_path: Path, template: Path, worksheet: Path

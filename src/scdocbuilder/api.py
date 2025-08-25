@@ -7,7 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import FastAPI, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from . import fill_template
@@ -66,7 +66,7 @@ async def web_generate(template: UploadFile, worksheet: UploadFile) -> HTMLRespo
 
 async def generate(
     template: UploadFile, worksheet: UploadFile, html: bool = False
-) -> HTMLResponse | FileResponse:
+) -> Response:
     """Generate DOCX or HTML from uploaded files.
 
     Args:
