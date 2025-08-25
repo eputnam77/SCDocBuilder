@@ -74,6 +74,25 @@ def test_export_html_fallback_paragraph(monkeypatch: pytest.MonkeyPatch) -> None
     assert "<p>plain</p>" in html
 
 
+def test_export_html_propagates_non_import_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Errors other than ImportError during import should bubble up."""
+    original_import = builtins.__import__
+
+    def fake_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "mammoth":
+            raise RuntimeError("boom")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    doc = Document()
+    doc.add_paragraph("plain")
+    with pytest.raises(RuntimeError):
+        export_html(doc)
+
+
 def test_render_runs_formats_text() -> None:
     from scdocbuilder.html_export import _render_runs
 

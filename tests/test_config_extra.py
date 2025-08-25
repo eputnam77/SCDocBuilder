@@ -113,3 +113,16 @@ def test_load_placeholder_schema_yaml_fallback(
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
     assert config.load_placeholder_schema(yml) == {"A": "B"}
+
+
+def test_parse_simple_yaml_hash_in_value() -> None:
+    text = "A: value#1"
+    assert config._parse_simple_yaml(text) == {"A": "value#1"}
+
+
+def test_load_placeholder_schema_reloads_on_change(tmp_path: Path) -> None:
+    path = tmp_path / "schema.json"
+    path.write_text('{"A": "x"}')
+    assert config.load_placeholder_schema(path) == {"A": "x"}
+    path.write_text('{"A": "y"}')
+    assert config.load_placeholder_schema(path) == {"A": "y"}
