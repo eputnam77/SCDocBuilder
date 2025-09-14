@@ -17,7 +17,7 @@ def reject_macros(path: Path) -> None:
         ValueError: If macros are detected.
         FileNotFoundError: If ``path`` does not exist.
     """
-    if not path.exists():
+    if not path.exists() or not path.is_file():
         raise FileNotFoundError(str(path))
     if path.suffix.lower() in {".docm", ".dotm"}:
         raise ValueError("Macro-enabled documents are not allowed")

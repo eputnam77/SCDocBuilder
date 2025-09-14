@@ -24,7 +24,7 @@ def validate_input_files(template: Path, worksheet: Path) -> None:
     """
 
     for file in (template, worksheet):
-        if not file.exists():
+        if not file.exists() or not file.is_file():
             raise FileNotFoundError(str(file))
         if file.suffix.lower() != ".docx":
             raise ValueError(f"{file} is not a .docx file")

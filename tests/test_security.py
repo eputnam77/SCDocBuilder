@@ -45,6 +45,14 @@ def test_reject_macros_missing_file(tmp_path: Path) -> None:
         reject_macros(path)
 
 
+def test_reject_macros_rejects_directory(tmp_path: Path) -> None:
+    """Directories should be treated like missing files."""
+    directory = tmp_path / "dir.docx"
+    directory.mkdir()
+    with pytest.raises(FileNotFoundError):
+        reject_macros(directory)
+
+
 def test_reject_macros_scans_entire_file(tmp_path: Path) -> None:
     """Macro signatures after the initial chunk should still be detected."""
     path = tmp_path / "late.docx"

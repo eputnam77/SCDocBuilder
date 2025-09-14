@@ -22,7 +22,10 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
             continue
         if ":" in line:
             key, value = line.split(":", 1)
+            key = key.strip()
             value = value.strip()
+            if not key:
+                raise ValueError("Empty key in YAML mapping")
 
             quoted = bool(value and value[0] in {'"', "'"})
             # Remove inline comments for unquoted values.  YAML only treats "#"
@@ -72,7 +75,7 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
                 if stack:
                     raise ValueError("Unbalanced brackets in YAML value")
 
-            result[key.strip()] = value
+            result[key] = value
         else:
             # Any non-comment, non-empty line without a colon indicates the file
             # is not a simple key/value mapping.  Reject it to mirror YAML's
