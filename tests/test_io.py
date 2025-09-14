@@ -49,7 +49,8 @@ def test_validate_input_files_magic_error(tmp_path: Path, monkeypatch: pytest.Mo
     Document().save(str(t))
     Document().save(str(w))
 
-    import types, sys
+    import sys
+    import types
 
     def fake_from_buffer(*args: Any, **kwargs: Any) -> str:
         raise OSError("missing magic database")

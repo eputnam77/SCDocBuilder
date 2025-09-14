@@ -105,6 +105,11 @@ def test_parse_simple_yaml_empty_value() -> None:
     assert config._parse_simple_yaml("A:") == {"A": ""}
 
 
+def test_parse_simple_yaml_rejects_empty_keys() -> None:
+    with pytest.raises(ValueError):
+        config._parse_simple_yaml(": value")
+
+
 def test_load_placeholder_schema_yaml_fallback(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

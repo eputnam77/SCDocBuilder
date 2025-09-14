@@ -26,3 +26,11 @@ def test_validate_input_files_rejects_wrong_mime(tmp_path: Path) -> None:
     bogus.write_text("not a real docx")
     with pytest.raises(ValueError):
         validate_input_files(bogus, bogus)
+
+
+def test_validate_input_files_rejects_directories(tmp_path: Path) -> None:
+    """Directories masquerading as files should be rejected."""
+    directory = tmp_path / "dir.docx"
+    directory.mkdir()
+    with pytest.raises(FileNotFoundError):
+        validate_input_files(directory, directory)
