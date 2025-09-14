@@ -26,6 +26,10 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
             value = value.strip()
             if not key:
                 raise ValueError("Empty key in YAML mapping")
+            if key in result:
+                # Reject duplicates to mirror behaviour of real YAML parsers
+                # and prevent silent overrides in tests.
+                raise ValueError("Duplicate key in YAML mapping")
 
             quoted = bool(value and value[0] in {'"', "'"})
             # Remove inline comments for unquoted values.  YAML only treats "#"
@@ -116,7 +120,7 @@ def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
     suffix = path.suffix.lower()
     if suffix == ".json":
         try:
-            with path.open("r", encoding="utf-8") as f:
+            with path.open("r", encoding="utf-8-sig") as f:
                 json_data: Any = json.load(f)
         except json.JSONDecodeError as exc:
             raise ValueError("Invalid JSON schema") from exc
@@ -130,11 +134,11 @@ def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
         try:
             yaml = __import__("yaml")
         except ModuleNotFoundError:
-            return _parse_simple_yaml(path.read_text(encoding="utf-8"))
+            return _parse_simple_yaml(path.read_text(encoding="utf-8-sig"))
         except ImportError as exc:
             raise ImportError("PyYAML is required for YAML files") from exc
         try:
-            with path.open("r", encoding="utf-8") as f:
+            with path.open("r", encoding="utf-8-sig") as f:
                 yaml_data: Any = yaml.safe_load(f)
         except yaml.YAMLError as exc:
             raise ValueError("Invalid YAML schema") from exc

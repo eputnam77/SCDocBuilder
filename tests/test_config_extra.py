@@ -189,3 +189,21 @@ def test_load_placeholder_schema_requires_string_values(tmp_path: Path) -> None:
             config.load_placeholder_schema(yaml_path)
     finally:
         sys.modules.pop("yaml", None)
+
+
+def test_parse_simple_yaml_duplicate_keys() -> None:
+    """Duplicate keys should be rejected to avoid silent overrides."""
+    text = "A: 1\nA: 2"
+    with pytest.raises(ValueError):
+        config._parse_simple_yaml(text)
+
+
+def test_load_placeholder_schema_handles_bom(tmp_path: Path) -> None:
+    """Files starting with a UTF-8 BOM should load correctly."""
+    json_path = tmp_path / "schema.json"
+    json_path.write_bytes("\ufeff{\"A\": \"x\"}".encode("utf-8"))
+    assert config.load_placeholder_schema(json_path) == {"A": "x"}
+
+    yaml_path = tmp_path / "schema.yaml"
+    yaml_path.write_bytes("\ufeffA: B".encode("utf-8"))
+    assert config.load_placeholder_schema(yaml_path) == {"A": "B"}
