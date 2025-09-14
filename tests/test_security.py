@@ -79,3 +79,16 @@ def test_cleanup_uploads_handles_permission_error(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(Path, "unlink", fake_unlink)
     # Should not raise even if unlink reports a permission problem
     cleanup_uploads(file_path)
+
+
+def test_cleanup_uploads_handles_generic_oserror(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Unexpected OS errors should be ignored during cleanup."""
+    file_path = tmp_path / "file.docx"
+    file_path.write_text("x")
+
+    def fake_unlink(self: Path) -> None:
+        raise OSError("boom")
+
+    monkeypatch.setattr(Path, "unlink", fake_unlink)
+    # Should not raise even if a generic OSError occurs
+    cleanup_uploads(file_path)

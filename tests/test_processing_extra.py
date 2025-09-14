@@ -223,3 +223,11 @@ def test_replace_placeholders_no_leftovers() -> None:
     replace_placeholders(doc, {"{A}": "1", "{B}": "2"})
     text = "\n".join(p.text for p in doc.paragraphs)
     assert not re.search(r"\{.+?\}", text)
+
+
+def test_replace_placeholders_overlapping_keys() -> None:
+    """Longer placeholders should take precedence over prefix matches."""
+    doc = Document()
+    doc.add_paragraph("{A1}")
+    replace_placeholders(doc, {"{A}": "X", "{A1}": "Y"})
+    assert doc.paragraphs[0].text == "Y"
