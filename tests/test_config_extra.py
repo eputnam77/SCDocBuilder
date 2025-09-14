@@ -150,3 +150,42 @@ def test_load_placeholder_schema_reloads_on_change(tmp_path: Path) -> None:
     assert config.load_placeholder_schema(path) == {"A": "x"}
     path.write_text('{"A": "y"}')
     assert config.load_placeholder_schema(path) == {"A": "y"}
+
+
+def test_parse_simple_yaml_trailing_quote() -> None:
+    """Unmatched trailing quotes should raise an error."""
+    with pytest.raises(ValueError):
+        config._parse_simple_yaml("A: value'")
+    with pytest.raises(ValueError):
+        config._parse_simple_yaml('A: value"')
+
+
+def test_load_placeholder_schema_rejects_directory(tmp_path: Path) -> None:
+    directory = tmp_path / "dir"
+    directory.mkdir()
+    with pytest.raises(FileNotFoundError):
+        config.load_placeholder_schema(directory)
+
+
+def test_load_placeholder_schema_requires_string_values(tmp_path: Path) -> None:
+    json_path = tmp_path / "schema.json"
+    json_path.write_text('{"A": 1}')
+    with pytest.raises(ValueError):
+        config.load_placeholder_schema(json_path)
+
+    yaml_path = tmp_path / "schema.yaml"
+    yaml_path.write_text("A: 1")
+
+    import types
+    import sys
+
+    fake_yaml = types.SimpleNamespace(
+        safe_load=lambda f: {1: 2},
+        YAMLError=Exception,
+    )
+    sys.modules["yaml"] = fake_yaml
+    try:
+        with pytest.raises(ValueError):
+            config.load_placeholder_schema(yaml_path)
+    finally:
+        sys.modules.pop("yaml", None)

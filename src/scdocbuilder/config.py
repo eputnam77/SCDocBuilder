@@ -38,6 +38,14 @@ def _parse_simple_yaml(text: str) -> Dict[str, str]:
                 hash_idx = value.find("#")
                 if hash_idx != -1 and (hash_idx == 0 or value[hash_idx - 1].isspace()):
                     value = value[:hash_idx].rstrip()
+                # ``strip"`` removes quote characters from either end.  If only
+                # one side contains a quote the previous implementation
+                # silently dropped it and returned the truncated value.  YAML
+                # treats a stray quote as a syntax error so mirror that
+                # behaviour by raising ``ValueError`` instead of producing a
+                # potentially surprising result.
+                if value and (value[0] in {'"', "'"} or value[-1] in {'"', "'"}):
+                    raise ValueError("Unclosed quote in YAML value")
                 value = value.strip("'\"")
             else:
                 quote = value[0]
@@ -100,7 +108,9 @@ def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
     """
 
     path = Path(path)
-    if not path.exists():
+    if not path.exists() or not path.is_file():
+        # Treat directories or special files like missing files to provide a
+        # consistent error type that callers already handle.
         raise FileNotFoundError(str(path))
 
     suffix = path.suffix.lower()
@@ -112,6 +122,8 @@ def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
             raise ValueError("Invalid JSON schema") from exc
         if not isinstance(json_data, dict):
             raise ValueError("Schema must be a mapping")
+        if not all(isinstance(k, str) and isinstance(v, str) for k, v in json_data.items()):
+            raise ValueError("Schema values must be strings")
         return dict(json_data)
 
     if suffix in {".yaml", ".yml"}:
@@ -128,6 +140,8 @@ def load_placeholder_schema(path: Path | str) -> Dict[str, str]:
             raise ValueError("Invalid YAML schema") from exc
         if not isinstance(yaml_data, dict):
             raise ValueError("Schema must be a mapping")
+        if not all(isinstance(k, str) and isinstance(v, str) for k, v in yaml_data.items()):
+            raise ValueError("Schema values must be strings")
         return dict(yaml_data)
 
     raise ValueError("Unsupported schema format")
